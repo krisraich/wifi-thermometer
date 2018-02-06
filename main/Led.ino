@@ -11,8 +11,10 @@ bool led_powerd = false;
 hw_timer_t * timer = NULL;
 
 void IRAM_ATTR toogle_led(){
-  led_powerd = !led_powerd;
-  digitalWrite(ON_BOARD_LED, led_powerd ? HIGH : LOW);
+  if(led_powerd)
+    led_off();
+  else
+    led_on(); 
 }
 
 void setup_led(){
@@ -37,11 +39,11 @@ void led_stop_blinking(){
 
 void led_on(){
   led_powerd = true;
-  digitalWrite(ON_BOARD_LED, HIGH);
+  digitalWrite(ON_BOARD_LED, ON_BOARD_LED_PULLDOWN_MODE ? LOW : HIGH);
 }
 void led_off(){
   led_powerd = false;
-  digitalWrite(ON_BOARD_LED, LOW);
+  digitalWrite(ON_BOARD_LED, ON_BOARD_LED_PULLDOWN_MODE ? HIGH : LOW);
 }
 
 
