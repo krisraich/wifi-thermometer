@@ -6,7 +6,6 @@
  * 
  * !Only pins that support both input & output have integrated pull-up and pull-down resistors. Input-only GPIOs 34-39 do not.
  */
-#include "esp_sleep.h"
 
 #define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
 
@@ -60,7 +59,7 @@ void deep_sleep_start(){
   
   //prevent looping on button hold
   if(ext_wakeup){
-    delay(BUFFER_TIME_EXT_WAKE_UP * 1000);
+    delay(BUFFER_TIME_EXT_WAKE_UP);
   }
   esp_deep_sleep_start();
 }

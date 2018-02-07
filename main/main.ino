@@ -5,6 +5,12 @@
   https://raw.githubusercontent.com/gojimmypi/ESP32/master/images/myESP32%20DevKitC%20pinout.png 
 
   Dev Baord: Pin6 digital out = Error
+
+  USED REPOSITORIES:
+    E-Paper: https://github.com/ZinggJM/GxEPD (not used: https://github.com/loboris/ESP32_ePaper_example)
+    WebServer: https://github.com/me-no-dev/ESPAsyncWebServer & https://github.com/me-no-dev/AsyncTCP
+    Via Bib-Manager: Adafruit GFX, ArduinoJson
+    
   
 */
 
@@ -13,10 +19,10 @@
 /////////////////
 // LIBS
 /////////////////
-// #include <DHTesp.h>
-// #include <WiFi.h>
-// #include "DHT.h"
+
 #include <driver/adc.h>
+
+
 
 /////////////////
 // Defines & Constants
@@ -24,8 +30,8 @@
 
 #define DEBUG true
 
-#define SLEEP_DURATION_SEC  20        /* Time ESP32 will go to sleep (in seconds) */
-#define BUFFER_TIME_EXT_WAKE_UP  2 /* Time ESP32 will wait befor next external wakeup*/
+#define SLEEP_DURATION_SEC  20       /* Time ESP32 will go to sleep (in seconds) */
+#define BUFFER_TIME_EXT_WAKE_UP  500 /* Time ESP32 will wait befor next external wakeup (in milliseconds)*/
 
 
 
@@ -40,6 +46,9 @@
 
 #define ON_BOARD_LED GPIO_NUM_27
 #define ON_BOARD_LED_PULLDOWN_MODE true 
+
+#define ON_BOARD_BUTTON 0
+#define ON_BOARD_BUTTON_PULLDOWN_MODE true 
 
 #define ANALOG_PIN_X ADC1_CHANNEL_0
 #define ANALOG_PIN_Y ADC1_CHANNEL_3
@@ -72,10 +81,13 @@ void setup() {
     }
   }
 
+  calibrate_adcs();
+
+/*
   gpio_set_pull_mode(MODE_SWITCH_PIN, MODE_SWITCH_ON_HIGH ? GPIO_PULLDOWN_ONLY : GPIO_PULLUP_ONLY);
   pinMode(MODE_SWITCH_PIN, MODE_SWITCH_ON_HIGH ? INPUT : INPUT_PULLUP); // MODE SWITCHER INPUT / INPUT_PULLUP for High
   attachInterrupt(digitalPinToInterrupt(MODE_SWITCH_PIN), handleInterrupt, CHANGE);
-  
+  */
  
  
   
@@ -111,6 +123,7 @@ void setup() {
 void loop() {
 
   Serial.println("Active...");
+  display_temps_on_display();
   //delay(1000);
   //beep(500, 500, BUZZER_PIN);
 
