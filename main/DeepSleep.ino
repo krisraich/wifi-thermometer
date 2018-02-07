@@ -13,7 +13,7 @@
 RTC_DATA_ATTR bool ext_wakeup = false;
 RTC_DATA_ATTR int boot_count = 0;
 
-bool setup_deep_sleep(){
+int setup_deep_sleep(){
   boot_count++;
   
   esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();

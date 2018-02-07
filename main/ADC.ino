@@ -19,7 +19,7 @@ double read_volt_from_channel(adc1_channel_t adc_channel){
 
 
 double convert_to_volt(int reading){
-  Serial.println(reading);
+  //Serial.println(reading);
   if(reading < 1 || reading >= 4095) return -1;
   //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
   return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;

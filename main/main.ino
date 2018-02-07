@@ -81,7 +81,15 @@ void setup() {
     }
   }
 
-  calibrate_adcs();
+  //setup
+  int bootups = setup_deep_sleep();
+  setup_adc();
+
+  //enter only on reset
+  if(bootups == 1){
+    calibrate_adcs();
+  }
+ 
 
 /*
   gpio_set_pull_mode(MODE_SWITCH_PIN, MODE_SWITCH_ON_HIGH ? GPIO_PULLDOWN_ONLY : GPIO_PULLUP_ONLY);
@@ -102,10 +110,6 @@ void setup() {
   }else{
     
     if(DEBUG) Serial.println("Energy Saving Mode");
-
-    //setup
-    setup_deep_sleep();
-    setup_adc();
   
     deep_sleep_wake_up_after_time(SLEEP_DURATION_SEC);
     deep_sleep_wake_up_on_pin_in(DEEP_SLEEP_WAKEUP_SWITCH, false);
