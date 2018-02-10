@@ -10,6 +10,23 @@
     E-Paper: https://github.com/ZinggJM/GxEPD (not used: https://github.com/loboris/ESP32_ePaper_example)
     WebServer: https://github.com/me-no-dev/ESPAsyncWebServer & https://github.com/me-no-dev/AsyncTCP
     Via Bib-Manager: Adafruit GFX, ArduinoJson
+
+
+  Program behaviour:
+    1. Bootup
+      1.A Calibration button pressed enter calibration mode
+    2. Load last programm state from eeprom and set Interrup on Buttons (OK/Refresh & Mode)
+      2.A: Power save mode (Display temps and go to sleep after specified time)
+      2.B: Wifi Mode: start WiFi Hotspot and display temps
+      2.C: BT-LE Slave-Mode: Start BT-LE Server, wait for connection.
+      2.D: Shutdown Mode: Start Power save mode
+    3. Ok/Refresh Button pressed:
+      3.A: Menue active: save mode to eeprom and restart
+        3.A.a If mode 2.D is selcetd, show image and go to sleep, wake up on button press
+      3.B: Mode 2.A, 2.B or 2.C active: update temp readings
+    4. Mode Botton pressed:
+      4.A Menue active: lode next mode (cycle throu 2.A - 2.D)
+      4.B Porgam active: do nothing
     
   
 */

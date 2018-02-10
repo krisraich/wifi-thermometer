@@ -4,6 +4,7 @@
  * https://github.com/G6EJD/ESP32-ADC-Accuracy-Improvement-function/blob/master/ESP32_ADC_Read_Voltage_Accurate.ino
  * http://i.imgur.com/mTkip9V.png
  * http://randomnerdtutorials.com/esp32-dht11-dht22-temperature-humidity-web-server-arduino-ide/
+ * http://www.physik.li/publikationen/Thermistor.pdf
  */
 
 
