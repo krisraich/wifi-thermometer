@@ -24,7 +24,12 @@ int setup_deep_sleep(){
   if(DEBUG){
       Serial.println("Boot count: " + String(boot_count));
       Serial.println("External wakeup: " + String(ext_wakeup));
+      print_wakeup_reason();
   }
+  return boot_count;
+}
+
+int get_bootups(){
   return boot_count;
 }
 
@@ -33,6 +38,13 @@ void deep_sleep_wake_up_after_time(int sleepSeconds){
   if(DEBUG){
       Serial.println("Setup ESP32 to wake up after " + String(sleepSeconds) +  " Seconds");
   }
+}
+
+void deep_sleep_wake_up_on_touch(){ 
+  if(DEBUG){
+    Serial.println("Setup ESP32 to wake up on toch");
+  }
+  esp_sleep_enable_touchpad_wakeup();
 }
 
 void deep_sleep_wake_up_on_pin_in(gpio_num_t rtc_gpio, bool on_high){ 
@@ -74,7 +86,7 @@ void print_wakeup_reason(){
     case 1  : Serial.println("Wakeup caused by external signal using RTC_IO"); break;
     case 2  : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
     case 3  : Serial.println("Wakeup caused by timer"); break;
-    case 4  : Serial.println("Wakeup caused by touchpad"); break;
+    case 4  : Serial.println("Wakeup caused by touchpad on pin: " + esp_sleep_get_touchpad_wakeup_status()); break;
     case 5  : Serial.println("Wakeup caused by ULP program"); break;
     default : Serial.println("Wakeup was not caused by deep sleep"); break;
   }

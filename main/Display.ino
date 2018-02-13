@@ -1,35 +1,78 @@
 /*
- * https://github.com/loboris/ESP32_ePaper_example
  * https://github.com/ZinggJM/GxEPD
+ * https://www.waveshare.com/wiki/2.9inch_e-Paper_Module
+ * https://github.com/ZinggJM/GxEPD/blob/master/GxGDEH029A1/GxGDEH029A1.h
+ * 
  */
 
 
-//Display (aus GxEPD_SPI_TestExample.ino)
-#include <GxEPD.h>
-#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
-#include <Fonts/FreeMonoBold9pt7b.h>
-#include <Fonts/FreeMonoBold12pt7b.h>
-#include <Fonts/FreeMonoBold18pt7b.h>
-#include <Fonts/FreeMonoBold24pt7b.h>
-#include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
-#include <GxIO/GxIO.cpp>
-
-
-// pins_arduino.h, e.g. LOLIN32
-//static const uint8_t SS    = 5;
-//static const uint8_t MOSI  = 23;
-//static const uint8_t MISO  = 19;
-//static const uint8_t SCK   = 18;
-
-// GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
-GxIO_Class io(SPI, SS, 17, 16); // arbitrary selection of 17, 16
-// GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
-GxEPD_Class display(io, 16, 4); // arbitrary selection of (16), 4
-
-
+void drawCornerTest()
+{
+  display.drawCornerTest();
+  delay(5000);
+  uint8_t rotation = display.getRotation();
+  for (uint16_t r = 0; r < 4; r++)
+  {
+    display.setRotation(r);
+    display.fillScreen(GxEPD_WHITE);
+    display.fillRect(0, 0, 8, 8, GxEPD_BLACK);
+    display.fillRect(display.width() - 18, 0, 16, 16, GxEPD_BLACK);
+    display.fillRect(display.width() - 25, display.height() - 25, 24, 24, GxEPD_BLACK);
+    display.fillRect(0, display.height() - 33, 32, 32, GxEPD_BLACK);
+    display.update();
+    delay(5000);
+  }
+  display.setRotation(rotation); // restore
+}
 
 
 void setup_display(){
+  if(DEBUG) Serial.println("init display");
+  display.init();
+
+
+  /*
+  display.drawBitmap(gImage_logo_4c, sizeof(gImage_logo_4c), GxEPD::bm_normal);
+  display.update();
+  delay(5000);
+*/
+
+  if(get_bootups() & 1 == 1){
+    display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_invert | GxEPD::bm_flip_y);
+  }else{
+    display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_normal | GxEPD::bm_flip_y);
+  }
+  
+ 
+ 
+  //delay(5000);
+
+  
+  //drawCornerTest();
+  //delay(5000);
+  
+/*
+  //drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_normal);
+  display.drawBitmap(gImage_gv_image, 0, 0, 86, 200, GxEPD_BLACK);
+  display.update();
+  delay(5000);
+  
+  display.drawBitmap(gImage_gv_image, 0, 0, 86, 200, GxEPD_WHITE);
+  display.update();
+  delay(5000);
+*/
+
+  
+ // display.fillScreen(GxEPD_WHITE);
+  //display.drawExampleBitmap(gImage_gv_image, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  //display.update();
+  //delay(5000);
+
+  
+  //display.drawBitmap(0, 0, gImage_gv_image, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  //display.drawBitmap(gImage_gv_image, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  //display.update();
+//  */
   
 }
 
@@ -37,8 +80,10 @@ void setup_display(){
 
   if(DEBUG){
     Serial.println("----- DISPLAY OUT ------");
-    Serial.println("X Voltage: " + String(read_volt_from_channel(ANALOG_PIN_X)) + "V");
-    Serial.println("Y Voltage: " + String(read_volt_from_channel(ANALOG_PIN_Y)) + "V");
+    
+    
+    //Serial.println("X Voltage: " + String(read_volt_from_channel(ANALOG_PIN_X)) + "V");
+    //Serial.println("Y Voltage: " + String(read_volt_from_channel(ANALOG_PIN_Y)) + "V");
     Serial.println("------------------------");
   }
   

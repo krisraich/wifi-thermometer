@@ -8,10 +8,16 @@
  */
 
 
+//#define ADC_ATTENUATION ADC_ATTEN_11db
 
 void setup_adc(){
   adc1_config_width(ADC_WIDTH_12Bit);
-  //adc1_config_channel_atten(adcChannel, ADC_ATTEN_11db);
+  
+  #if defined(ADC_ATTENUATION) && ADC_ATTENUATION !=  ADC_ATTEN_11db //only set when different from default
+    for (adc1_channel_t current_channel : adc_channels){    
+      adc1_config_channel_atten(current_channel, ADC_ATTENUATION); 
+    }
+  #endif
 }
 
 double read_volt_from_channel(adc1_channel_t adc_channel){
@@ -27,27 +33,15 @@ double convert_to_volt(int reading){
 } 
 
 
-bool recursive_button_press_detection(int recursion_level_aka_time){
-    if(recursion_level_aka_time == 0) {
-      if(DEBUG) Serial.println("Entering calibration, reset to exit");
-      return true;
-    }
-    delay(1000);
-    if(digitalRead(ON_BOARD_BUTTON) == ON_BOARD_BUTTON_PULLDOWN_MODE ? 0 : 1){
-      if(DEBUG) Serial.println("Load calibration routine in: " + String(recursion_level_aka_time - 1));
-      return recursive_button_press_detection(--recursion_level_aka_time);
-    }
-    return false;
-  }
-
 
 void calibrate_adcs(){
-  
-  pinMode(ON_BOARD_BUTTON, ON_BOARD_BUTTON_PULLDOWN_MODE ? INPUT_PULLUP : INPUT);
-  if(DEBUG) Serial.println("For Calibration, hold down calibration button");
-  if(! recursive_button_press_detection(5)){
+  Serial.println("Hold calibration Button for 5 Seconds for calibration");
+  delay(1000);
+  if(! button_has_been_pressed(4000, ON_BOARD_BUTTON, ON_BOARD_BUTTON_PULLDOWN_MODE)){
+    Serial.println("Aborting... load normal routine");
     return;
   }
+  Serial.println("Now in calibration mode!");
   
   adc1_config_width(ADC_WIDTH_12Bit);
   
@@ -61,11 +55,9 @@ void calibrate_adcs(){
 
     while(Serial.available())
       Serial.read();
-    
-    for(int i = ADC1_CHANNEL_0; i <= ADC1_CHANNEL_7; i++) {
-      if(i == 1 || i == 2) continue;
-      
-      Serial.print(adc1_get_raw(static_cast<adc1_channel_t>(i)));
+
+    for (adc1_channel_t current_channel : adc_channels){      
+      Serial.print(adc1_get_raw(current_channel));
       Serial.print(" ");
     }
     Serial.println(); 
