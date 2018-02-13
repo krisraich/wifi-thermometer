@@ -30,13 +30,6 @@ void setup_display(){
   if(DEBUG) Serial.println("init display");
   display.init();
 
-
-  /*
-  display.drawBitmap(gImage_logo_4c, sizeof(gImage_logo_4c), GxEPD::bm_normal);
-  display.update();
-  delay(5000);
-*/
-
   if(get_bootups() & 1 == 1){
     display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_invert | GxEPD::bm_flip_y);
   }else{
@@ -44,36 +37,6 @@ void setup_display(){
   }
   
  
- 
-  //delay(5000);
-
-  
-  //drawCornerTest();
-  //delay(5000);
-  
-/*
-  //drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_normal);
-  display.drawBitmap(gImage_gv_image, 0, 0, 86, 200, GxEPD_BLACK);
-  display.update();
-  delay(5000);
-  
-  display.drawBitmap(gImage_gv_image, 0, 0, 86, 200, GxEPD_WHITE);
-  display.update();
-  delay(5000);
-*/
-
-  
- // display.fillScreen(GxEPD_WHITE);
-  //display.drawExampleBitmap(gImage_gv_image, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
-  //display.update();
-  //delay(5000);
-
-  
-  //display.drawBitmap(0, 0, gImage_gv_image, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
-  //display.drawBitmap(gImage_gv_image, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
-  //display.update();
-//  */
-  
 }
 
  void display_temps_on_display(){

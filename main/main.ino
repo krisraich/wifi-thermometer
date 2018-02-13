@@ -7,9 +7,9 @@
   Dev Baord: Pin6 digital out = Error
 
   USED REPOSITORIES:
-    E-Paper: https://github.com/ZinggJM/GxEPD (not used: https://github.com/loboris/ESP32_ePaper_example)
+    E-Paper: https://github.com/ZinggJM/GxEPD 
     WebServer: https://github.com/me-no-dev/ESPAsyncWebServer & https://github.com/me-no-dev/AsyncTCP
-    Via Bib-Manager: Adafruit GFX, ArduinoJson
+    Via Librarie manager: Adafruit GFX, ArduinoJson
 
 
   Program behaviour:
@@ -52,7 +52,7 @@
 #include "logo_4c.h"
 #include "logo_mono.h"
 
- //webserver
+//webserver
 #include <AsyncTCP.h>
 #include <AsyncEventSource.h>
 #include <AsyncJson.h>
@@ -65,14 +65,17 @@
 #include <WebResponseImpl.h>
 #include <WiFi.h>
 
+//EEPROM
+#include "EEPROM.h"
+
 /////////////////
 // Defines & Constants
 /////////////////
 
 #define DEBUG true
 
-#define SLEEP_DURATION_SEC  20       /* Time ESP32 will go to sleep (in seconds) */
-#define BUFFER_TIME_EXT_WAKE_UP 500 /* Time ESP32 will wait befor next external wakeup (in milliseconds)*/
+#define SLEEP_DURATION_SEC  20        /* Time ESP32 will go to sleep (in seconds) */
+#define BUFFER_TIME_EXT_WAKE_UP 500   /* Time ESP32 will wait befor next external wakeup (in milliseconds)*/
 
 
 
@@ -104,13 +107,26 @@
 #define DISPLAY_DIN MOSI //SPI MOSI (master out slave in) = PIN 23
 
 //Analog in for LoLin
-const adc1_channel_t adc_channels[6] {
+const adc1_channel_t ADC_CHANNELS[6] {
   ADC1_CHANNEL_0, //PIN VP
   ADC1_CHANNEL_3, //PIN VN
   ADC1_CHANNEL_4, //PIN A1.4/R9/32
   ADC1_CHANNEL_5, //PIN A1.5/R8/33
   ADC1_CHANNEL_6, //PIN A1.6/R4/34
   ADC1_CHANNEL_7  //PIN A1.7/R5/35
+};
+
+
+enum OPERATION_MODE{
+  POWER_SAVING = 0,
+  WIFI_SERVER = 1,
+  BT_LE_SLAVE = 2,
+};
+
+enum BLINK_FREQUENCY{
+  SLOW = 2,
+  NORMAL = 10,
+  FAST = 20
 };
 
 /////////////////
@@ -138,8 +154,7 @@ void IRAM_ATTR ok_button_pressed() {
 void setup() {
 
   setup_led();
-  led_start_blinking();
-
+ 
   //Initialize serial and wait for port to open:
   if (DEBUG) {
     Serial.begin(115200);
@@ -148,9 +163,14 @@ void setup() {
     }
   }
 
-  //setup
+  
+  led_start_blinking();
+  
+
   int bootups = setup_deep_sleep();
   setup_adc();
+
+  setup_data_store();
   
   //enter only on reset
   if (bootups == 1) {
@@ -163,7 +183,11 @@ void setup() {
 
 
 
- 
+  OPERATION_MODE opm = get_last_operation_mode();
+  if (DEBUG){
+    Serial.print("Starting operation mode: ");
+    Serial.println(operation_mode_to_string(opm));
+  }
   
   /*
     gpio_set_pull_mode(MODE_SWITCH_PIN, MODE_SWITCH_ON_HIGH ? GPIO_PULLDOWN_ONLY : GPIO_PULLUP_ONLY);
@@ -172,39 +196,48 @@ void setup() {
   */
 
 
-  bool wifi_mode = false; //digitalRead(MODE_SWITCH_PIN);
-
-  if (wifi_mode) {
-    setup_webserver();
+  switch(opm){
+    case POWER_SAVING:
+      start_power_saveing_mode();
+      return;
+    case WIFI_SERVER:
+      setup_webserver();
+      //TODO: remove
+      save_operation_mode(POWER_SAVING);
+      return; //enter Loop?
+    case BT_LE_SLAVE:
+      if (DEBUG) Serial.print("Not implemented yet! Starting Power safe mode");
+    default: //unknown mode fallthrough
+      save_operation_mode(POWER_SAVING);
+      ESP.restart();
     
-    if (DEBUG) Serial.println("Starting WiFi Mode");
-
-
-  } else {
-
-    if (DEBUG) Serial.println("Energy Saving Mode");
-
-    deep_sleep_wake_up_after_time(SLEEP_DURATION_SEC);
-    deep_sleep_wake_up_on_touch();
-
-    display_temps_on_display();
-
-    led_stop_blinking();
-    deep_sleep_start();
   }
+  
 }
+
+
+void start_power_saveing_mode(){
+  if (DEBUG) Serial.println("Energy Saving Mode");
+
+  deep_sleep_wake_up_after_time(SLEEP_DURATION_SEC);
+  deep_sleep_wake_up_on_touch();
+
+  display_temps_on_display();
+
+  led_stop_blinking();
+  deep_sleep_start();
+}
+
 
 /////////////////
 // Loop - not executed while deep sleep
 /////////////////
 void loop() {
 
-  Serial.println("Active...");
+  Serial.println("Wifi Active...");
   display_temps_on_display();
-  //delay(1000);
-  //beep(500, 500, BUZZER_PIN);
-
-
+  delay(5000);
+  
 
 }
 

@@ -40,10 +40,9 @@ void deep_sleep_wake_up_after_time(int sleepSeconds){
   }
 }
 
+//needs touch interrupt to work...
 void deep_sleep_wake_up_on_touch(){ 
-  if(DEBUG){
-    Serial.println("Setup ESP32 to wake up on toch");
-  }
+  if(DEBUG) Serial.println("Setup ESP32 to wake up on toch");
   esp_sleep_enable_touchpad_wakeup();
 }
 

@@ -5,6 +5,6 @@
 
 
 void setup_webserver(){
-  
+    if(DEBUG) Serial.println("Setup webserver...");
 }
 

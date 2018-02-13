@@ -4,8 +4,6 @@
  * https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/Timer/RepeatTimer/RepeatTimer.ino
  */
 
-//change this
-const int BLINK_FREQ = 10;
 
 bool led_powerd = false;
 hw_timer_t * timer = NULL;
@@ -17,13 +15,20 @@ void IRAM_ATTR toogle_led(){
     led_on(); 
 }
 
+void set_blink_frequency(BLINK_FREQUENCY frequency){
+  timerAlarmWrite(timer, 1000000 / frequency , true);
+}
+
 void setup_led(){
   pinMode(ON_BOARD_LED, OUTPUT);
+  led_on();
   timer = timerBegin(0, 80, true); //timer id 0 bis 3, 80 = devider
   timerAttachInterrupt(timer, &toogle_led, true);
-  timerAlarmWrite(timer, 1000000 / BLINK_FREQ , true);
+  set_blink_frequency(NORMAL);
   
 }
+
+
 
 void led_start_blinking(){
   if(DEBUG) Serial.println("Start LED blinking");

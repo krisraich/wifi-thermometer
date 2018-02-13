@@ -1,5 +1,4 @@
 /*
- * 
  * https://esp-idf.readthedocs.io/en/v2.0/api/peripherals/adc.html
  * https://github.com/G6EJD/ESP32-ADC-Accuracy-Improvement-function/blob/master/ESP32_ADC_Read_Voltage_Accurate.ino
  * http://i.imgur.com/mTkip9V.png
@@ -14,7 +13,7 @@ void setup_adc(){
   adc1_config_width(ADC_WIDTH_12Bit);
   
   #if defined(ADC_ATTENUATION) && ADC_ATTENUATION !=  ADC_ATTEN_11db //only set when different from default
-    for (adc1_channel_t current_channel : adc_channels){    
+    for (adc1_channel_t current_channel : ADC_CHANNELS){    
       adc1_config_channel_atten(current_channel, ADC_ATTENUATION); 
     }
   #endif
@@ -41,7 +40,9 @@ void calibrate_adcs(){
     Serial.println("Aborting... load normal routine");
     return;
   }
+  
   Serial.println("Now in calibration mode!");
+  set_blink_frequency(FAST);
   
   adc1_config_width(ADC_WIDTH_12Bit);
   
@@ -56,7 +57,7 @@ void calibrate_adcs(){
     while(Serial.available())
       Serial.read();
 
-    for (adc1_channel_t current_channel : adc_channels){      
+    for (adc1_channel_t current_channel : ADC_CHANNELS){      
       Serial.print(adc1_get_raw(current_channel));
       Serial.print(" ");
     }
