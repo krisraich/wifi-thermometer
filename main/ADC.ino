@@ -43,8 +43,7 @@ void calibrate_adcs(){
   
   Serial.println("Now in calibration mode!");
   set_blink_frequency(FAST);
-  
-  adc1_config_width(ADC_WIDTH_12Bit);
+  print_big_text("CALIBRATI0N!1", &FreeMonoBold18pt7b);
   
   int incomingByte; 
   while(Serial){

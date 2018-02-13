@@ -43,6 +43,7 @@
 #include <SPI.h>
 #include <GxEPD.h>
 #include <GxGDEH029A1/GxGDEH029A1.cpp> 
+//more fonts: ~/Arduino/libraries/Adafruit_GFX_Library/Fonts
 #include <Fonts/FreeMonoBold9pt7b.h>
 #include <Fonts/FreeMonoBold12pt7b.h>
 #include <Fonts/FreeMonoBold18pt7b.h>
@@ -172,12 +173,20 @@ void setup() {
 
   setup_data_store();
   
+  setup_display();
+    
   //enter only on reset
   if (bootups == 1) {
     calibrate_adcs();
   }
 
-  setup_display();
+
+  if(bootups & 1 == 1){
+    display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_invert | GxEPD::bm_flip_y);
+  }else{
+    display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_normal | GxEPD::bm_flip_y);
+  }
+  
 
   setup_touch();
 
