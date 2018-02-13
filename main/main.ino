@@ -181,15 +181,19 @@ void setup() {
   }
 
 
-  if(bootups & 1 == 1){
-    display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_invert | GxEPD::bm_flip_y);
-  }else{
-    display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_normal | GxEPD::bm_flip_y);
+  switch(bootups % 3){
+    case 1:
+      display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_invert | GxEPD::bm_flip_y);
+      break;
+    case 2:
+      display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_normal | GxEPD::bm_flip_y);
+      break;
+    case 0:
+      print_big_text("L00t Boyzz!1", &FreeMonoBold18pt7b);
+      break;
   }
-  
 
   setup_touch();
-
 
 
   OPERATION_MODE opm = get_last_operation_mode();
