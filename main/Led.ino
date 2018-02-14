@@ -16,7 +16,7 @@ void IRAM_ATTR toogle_led(){
 }
 
 void set_blink_frequency(BLINK_FREQUENCY frequency){
-  timerAlarmWrite(timer, 1000000 / frequency , true);
+  timerAlarmWrite(timer, uS_TO_S_FACTOR / frequency , true);
 }
 
 void setup_led(){
@@ -27,8 +27,6 @@ void setup_led(){
   set_blink_frequency(NORMAL);
   
 }
-
-
 
 void led_start_blinking(){
   if(DEBUG) Serial.println("Start LED blinking");

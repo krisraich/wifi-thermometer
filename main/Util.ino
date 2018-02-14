@@ -19,15 +19,13 @@ bool button_has_been_pressed(int milli_seconds, uint8_t pin, bool pull_down){
 }
 
 
-inline const char* operation_mode_to_string(OPERATION_MODE operation_mode)
-{
-    switch (operation_mode)
-    {
-        case POWER_SAVING: return "POWER_SAVING";
-        case WIFI_SERVER:  return "WIFI_SERVER";
-        case BT_LE_SLAVE:  return "BT_LE_SLAVE";
-        default:           return "[Unknown OPERATION_MODE]";
-    }
+inline const char* operation_mode_to_string(OPERATION_MODE operation_mode){
+  switch (operation_mode){
+    case POWER_SAVING: return "POWER_SAVING";
+    case WIFI_SERVER:  return "WIFI_SERVER";
+    case BT_LE_SLAVE:  return "BT_LE_SLAVE";
+    default:           return "[Unknown OPERATION_MODE]";
+  }
 }
 
 

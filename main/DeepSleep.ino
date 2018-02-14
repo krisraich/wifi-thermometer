@@ -3,18 +3,19 @@
  * https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/DeepSleep/TimerWakeUp/TimerWakeUp.ino
  * https://esp-idf.readthedocs.io/en/v2.0/api/system/deep_sleep.html
  * https://github.com/SensorsIot/ESP32-Deep-Sleep
+ * https://esp-idf.readthedocs.io/en/v3.0-rc1/api-reference/system/sleep_modes.html?highlight=deep%20sleep#power-down-of-rtc-peripherals-and-memories
  * 
  * !Only pins that support both input & output have integrated pull-up and pull-down resistors. Input-only GPIOs 34-39 do not.
  */
 
-#define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
-
-
+//RTC_DATA_ATTR -> value, stored in RTC_SLOW_MEM 
 RTC_DATA_ATTR bool ext_wakeup = false;
 RTC_DATA_ATTR int boot_count = 0;
 
 int setup_deep_sleep(){
   boot_count++;
+
+  esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_FAST_MEM, ESP_PD_OPTION_OFF);
   
   esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
   ext_wakeup = (wakeup_reason == 1 ||  //ESP_DEEP_SLEEP_WAKEUP_EXT0

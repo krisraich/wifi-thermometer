@@ -3,18 +3,19 @@
 
   Features:
     Supports up to 6 Sensors for temperature reading.
-    Can operate in differend Modes: Power-Saving, WiFi access point with webserver or bluetooth low energy slave mode.
-    Displays temperatures on an E-Paper display or via Webbrowser. 
+    Can operate in different Modes: Power-Saving, WiFi access point with webserver or Bluetooth low energy slave mode.
+    Displays temperatures on an E-Paper display or via Web browser. 
     Pins are set for LoLin Lite board.
- 
 
   Docs:
     Wroom Dev Board Pins: https://raw.githubusercontent.com/gojimmypi/ESP32/master/images/myESP32%20DevKitC%20pinout.png
+    Wroom Dev Board Doc: https://www.espressif.com/sites/default/files/documentation/esp-wroom-32_datasheet_en.pdf
+    ESP32 Datasheet: https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf
     LoLin Lite: https://wiki.wemos.cc/products:lolin32:lolin32_lite
     Arduino Pins: https://github.com/espressif/arduino-esp32/blob/master/variants/nodemcu-32s/pins_arduino.h
 
   Dev Notes:
-    Dev Baord: Pin6 digital out = Error
+    Dev Board: Pin6 digital out = Error
 
   USED REPOSITORIES:
     E-Paper: https://github.com/ZinggJM/GxEPD 
@@ -25,18 +26,18 @@
   Program behaviour:
     1. Bootup
       1.A Calibration button pressed enter calibration mode
-    2. Load last programm state from eeprom and set Interrup on Buttons (OK/Refresh & Mode)
+    2. Load last program state from eeprom and set Interrupt on Buttons (OK/Refresh & Mode)
       2.A: Power save mode (Display temps and go to sleep after specified time)
       2.B: Wifi Mode: start WiFi Hotspot and display temps
-      2.C: BT-LE Slave-Mode: Start BT-LE Server, wait for connection.
+      2.C: BT-LE Slave-Mode: Start BT-LE Server, wait for connection. (Not implemented yet)
       2.D: Shutdown Mode: Start Power save mode
     3. Ok/Refresh Button pressed:
-      3.A: Menue active: save mode to eeprom and restart
-        3.A.a If mode 2.D is selcetd, show image and go to sleep, wake up on button press
+      3.A: Menu active: save mode to eeprom and restart
+        3.A.a If mode 2.D is selected, show image and go to sleep, wake up on button press
       3.B: Mode 2.A, 2.B or 2.C active: update temp readings
-    4. Mode Botton pressed:
-      4.A Menue active: lode next mode (cycle throu 2.A - 2.D)
-      4.B Porgam active: do nothing
+    4. Mode Bottom pressed:
+      4.A Menu active: lode next mode (cycle through 2.A - 2.D)
+      4.B Program active: do nothing
 */
 
 
@@ -86,6 +87,7 @@
 #define SLEEP_DURATION_SEC  20        /* Time ESP32 will go to sleep (in seconds) */
 #define BUFFER_TIME_EXT_WAKE_UP 500   /* Time ESP32 will wait befor next external wakeup (in milliseconds)*/
 
+#define uS_TO_S_FACTOR 1000000        /* Conversion factor for micro seconds to seconds */
 
 /////////////////
 // Pin Setup
@@ -189,14 +191,14 @@ void setup() {
 
 
   switch(bootups % 3){
+     case 0:
+      print_big_text("L00t Boyzz!1", &FreeMonoBold18pt7b);
+      break;
     case 1:
       display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_invert | GxEPD::bm_flip_y);
       break;
     case 2:
       display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_normal | GxEPD::bm_flip_y);
-      break;
-    case 0:
-      print_big_text("L00t Boyzz!1", &FreeMonoBold18pt7b);
       break;
   }
 
@@ -250,7 +252,7 @@ void start_power_saveing_mode(){
 
 
 /////////////////
-// Loop - not executed while deep sleep
+// Loop - not executed in power saving mode
 /////////////////
 void loop() {
 
@@ -262,6 +264,11 @@ void loop() {
 }
 
 
-
+//schlauer kris vergisst den DataStore hinzuzufügen. Dummy Code...
+void setup_data_store(){}
+OPERATION_MODE get_last_operation_mode(){
+  return POWER_SAVING;
+}
+void save_operation_mode(OPERATION_MODE dummy){}
 
 
