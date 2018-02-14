@@ -3,6 +3,7 @@
  * https://www.waveshare.com/wiki/2.9inch_e-Paper_Module
  * https://github.com/ZinggJM/GxEPD/blob/master/GxGDEH029A1/GxGDEH029A1.h
  * https://github.com/ZinggJM/GxEPD/blob/master/examples/GxEPD_SPI_TestExample/GxEPD_SPI_TestExample.ino
+ * https://github.com/adafruit/Adafruit-GFX-Library/tree/master/Fonts
  */
 
 

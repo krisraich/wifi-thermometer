@@ -1,10 +1,20 @@
 /*
-  By Kris
-  http://www.instructables.com/id/IOT-Made-Simple-Playing-With-the-ESP32-on-Arduino-/
-  https://techtutorialsx.com/2017/05/09/esp32-running-code-on-a-specific-core/
-  https://raw.githubusercontent.com/gojimmypi/ESP32/master/images/myESP32%20DevKitC%20pinout.png
+  WiFi Thermometer for ESP32 µC - By Kris 2018
 
-  Dev Baord: Pin6 digital out = Error
+  Features:
+    Supports up to 6 Sensors for temperature reading.
+    Can operate in differend Modes: Power-Saving, WiFi access point with webserver or bluetooth low energy slave mode.
+    Displays temperatures on an E-Paper display or via Webbrowser. 
+    Pins are set for LoLin Lite board.
+ 
+
+  Docs:
+    Wroom Dev Board Pins: https://raw.githubusercontent.com/gojimmypi/ESP32/master/images/myESP32%20DevKitC%20pinout.png
+    LoLin Lite: https://wiki.wemos.cc/products:lolin32:lolin32_lite
+    Arduino Pins: https://github.com/espressif/arduino-esp32/blob/master/variants/nodemcu-32s/pins_arduino.h
+
+  Dev Notes:
+    Dev Baord: Pin6 digital out = Error
 
   USED REPOSITORIES:
     E-Paper: https://github.com/ZinggJM/GxEPD 
@@ -27,8 +37,6 @@
     4. Mode Botton pressed:
       4.A Menue active: lode next mode (cycle throu 2.A - 2.D)
       4.B Porgam active: do nothing
-
-
 */
 
 
@@ -77,7 +85,6 @@
 
 #define SLEEP_DURATION_SEC  20        /* Time ESP32 will go to sleep (in seconds) */
 #define BUFFER_TIME_EXT_WAKE_UP 500   /* Time ESP32 will wait befor next external wakeup (in milliseconds)*/
-
 
 
 /////////////////
