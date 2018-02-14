@@ -267,11 +267,3 @@ void loop() {
 }
 
 
-//schlauer kris vergisst den DataStore hinzuzufügen. Dummy Code...
-void setup_data_store(){}
-OPERATION_MODE get_last_operation_mode(){
-  return POWER_SAVING;
-}
-void save_operation_mode(OPERATION_MODE dummy){}
-
-
