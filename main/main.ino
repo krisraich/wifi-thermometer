@@ -190,15 +190,18 @@ void setup() {
   }
 
 
-  switch(bootups % 3){
-     case 0:
-      print_big_text("L00t Boyzz!1", &FreeMonoBold18pt7b);
+  switch(bootups % 2){
+     
+    case 0:
+      //display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_invert | GxEPD::bm_flip_y);
+      display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert);
       break;
     case 1:
-      display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_invert | GxEPD::bm_flip_y);
+      //display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_normal | GxEPD::bm_flip_y);
+      display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_normal);
       break;
     case 2:
-      display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_normal | GxEPD::bm_flip_y);
+      print_big_text("L00t Boyzz!1", &FreeMonoBold18pt7b);
       break;
   }
 
