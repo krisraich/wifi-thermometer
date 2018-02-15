@@ -35,17 +35,20 @@ void setup_display(){
   display.setRotation(3); //font orientation
 }
 
-void display_temps_on_display(){
+void update_display(){
 
   if(DEBUG){
-    Serial.println("----- DISPLAY OUT ------");
-    
-    
-    //Serial.println("X Voltage: " + String(read_volt_from_channel(ANALOG_PIN_X)) + "V");
-    //Serial.println("Y Voltage: " + String(read_volt_from_channel(ANALOG_PIN_Y)) + "V");
-    Serial.println("------------------------");
+    Serial.println("----- Display Temps ------");
+    for (adc1_channel_t current_channel : ADC_CHANNELS){      
+      Serial.println("Sensor input No. " + String(current_channel) + " is " + String(adc1_get_raw(current_channel)));
+    }
+    Serial.println("--------------------------");
   }
   
+ }
+
+ void show_menu(){
+  if(DEBUG) Serial.println("----- Display Menu ------");
  }
 
 /*

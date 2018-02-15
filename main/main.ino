@@ -19,8 +19,7 @@
 
   USED REPOSITORIES:
     E-Paper: https://github.com/ZinggJM/GxEPD
-    WebServer: https://github.com/me-no-dev/ESPAsyncWebServer & https://github.com/me-no-dev/AsyncTCP
-    Via Librarie manager: Adafruit GFX, ArduinoJson
+    Via Librarie manager: Adafruit GFX
 
 
   Program behaviour:
@@ -38,6 +37,10 @@
     4. Mode Bottom pressed:
       4.A Menu active: lode next mode (cycle through 2.A - 2.D)
       4.B Program active: do nothing
+
+   ToDo:
+    1. Mode switch on button press
+    2. Menu open mode
 */
 
 /////////////////
@@ -63,7 +66,7 @@
 //Touch button inputs
 #define TOUCH_TIME 3 //time in measuring cycles. 1 Cylce 35ms
 #define MODE_TOUCH_BUTTON TOUCH_PAD_NUM3 //GPIO 15 See: https://github.com/espressif/arduino-esp32/blob/master/tools/sdk/include/driver/driver/touch_pad.h
-#define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // GPIO 13
+#define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // GPIO 13 Button für refresh
 
 //Pin für LoLin / waveshare 2.9
 #define DISPLAY_BUSY 17 // Display BUSY = any GPIO
@@ -111,9 +114,6 @@
 
 //webserver
 #include <WiFi.h>
-#include <FS.h>
-#include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
 
 //EEPROM
 #include "EEPROM.h"
@@ -171,7 +171,7 @@ void refresh_display(void *pvParameter) {
   while(true){
     vTaskDelay(SLEEP_DURATION_SEC * 1000 / portTICK_PERIOD_MS);
     if (DEBUG) Serial.println("Refreshing Display..");
-    display_temps_on_display();
+    update_display();
   }
 }
 
@@ -218,11 +218,12 @@ void setup() {
       break;
   }
 
+  //also needed for deepsleep
   setup_touch();
 
 
   //after ini, show temps
-  display_temps_on_display();
+  update_display();
 
 
   OPERATION_MODE opm = WIFI_SERVER;//get_last_operation_mode();
@@ -257,9 +258,18 @@ void start_power_saveing_mode() {
 
 void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
   if (on_boot) {
-    Serial.println("Touch waked up ESP32!");
+    //esp was woken up by user in power saving mode.. so do nothing
+    return;
+  }else if(pressed_button == OK_TOUCH_BUTTON){
+    // ok button is refresh button
+    update_display();
+  }else{
+    //Mode Button pressed
+    show_menu();
   }
-  Serial.println("touch pin: " + String(pressed_button));
+  
+  
+  //Serial.println("touch pin: " + String(pressed_button));
 }
 
 /////////////////
