@@ -1,48 +1,103 @@
 /*
- *   https://www.arduino.cc/en/Reference/WiFi101BeginAP
- *   https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
- *   https://techtutorialsx.com/2017/05/09/esp32-running-code-on-a-specific-core/
- *   
- *   https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi/src
- *   
- *   https://techtutorialsx.com/2017/12/01/esp32-arduino-asynchronous-http-webserver/
- */
+     https://www.arduino.cc/en/Reference/WiFi101BeginAP
+     https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
+     https://techtutorialsx.com/2017/05/09/esp32-running-code-on-a-specific-core/
+
+     https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi/src
+
+     https://techtutorialsx.com/2017/12/01/esp32-arduino-asynchronous-http-webserver/
+*/
+
+const char HTML_HEAD[] = "<!DOCTYPE html><html><head><title>Grillthermometer</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta http-equiv=\"refresh\" content=\"10\"></head><body><h1>Grillthermometer</h1>";
+const char HTML_FOOTER[] = "<footer>By Kris 2018 &#8226; Pitztaler Grillverein &#8226; <a href=\"https://grillverein.tirol\">grillverein.tirol</a> &#8226; <a href=\"mailto:info@grillverein.tirol\">info@grillverein.tirol</a></footer></body></html>";
 
 
-void setup_webserver(){
-  if(DEBUG) Serial.println("Setup Access point");
+void webserver_ap_task(void *pvParameter) {
+
+  if (DEBUG) Serial.println("Setup Access point");
 
 #if defined(WIFI_AP_PASSWORD)
   WiFi.softAP(WIFI_AP_SSID, WIFI_AP_PASSWORD);
-#else 
+#else
   WiFi.softAP(WIFI_AP_SSID);
-#endif  
+#endif
 
   // local_ip,   gateway,   subnet
   WiFi.softAPConfig(Ip, Ip, NMask);
 
-  if(DEBUG){
+  if (DEBUG) {
     IPAddress myIP = WiFi.softAPIP();
     Serial.print("AP IP address: ");
     Serial.println(myIP);
   }
 
-/*
- * assertion "don't call tcp_abort/tcp_abandon for listen-pcbs" failed: file "/Users/ficeto/Desktop/ESP32/ESP32/esp-idf-public/components/lwip/core/tcp.c", line 375, function: tcp_abandon
-abort() was called at PC 0x400dfbab on core 1
+  if (DEBUG) Serial.println("Starting Webserver");
+  WiFiServer web_server(80);
+  web_server.begin();
 
-Backtrace: 0x400881d8:0x3ffd4a40 0x400882d7:0x3ffd4a60 0x400dfbab:0x3ffd4a80 0x400f6efd:0x3ffd4ab0 0x400f6fc9:0x3ffd4ae0 0x400d4174:0x3ffd4b00 0x400f3db5:0x3ffd4b20
+  char linebuf[80];
+  int charcount = 0;
+
+  while (true) {
+    // listen for incoming clients
+    WiFiClient client = web_server.available();
+    if (client) {
+      
+      if (DEBUG) Serial.println("New client");
+      
+      memset(linebuf, 0, sizeof(linebuf));
+      charcount = 0;
+      // an http request ends with a blank line
+      boolean currentLineIsBlank = true;
+      while (client.connected()) {
+        if (client.available()) {
+          char c = client.read();
+          Serial.write(c);
+          //read char by char HTTP request
+          linebuf[charcount] = c;
+          if (charcount < sizeof(linebuf) - 1) charcount++;
+          // if you've gotten to the end of the line (received a newline
+          // character) and the line is blank, the http request has ended,
+          // so you can send a reply
+          if (c == '\n' && currentLineIsBlank) {
+
+            if (DEBUG) Serial.println("send response to client");
+            
+            // send a standard http response header
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-Type: text/html");
+            client.println("Connection: close");  // the connection will be closed after completion of the response
+            client.println();
+            client.println(HTML_HEAD);
+
+             for (adc1_channel_t current_channel : ADC_CHANNELS){      
+              client.println("<p>Sensor input No. ");
+              client.println(current_channel);
+              client.println(" is <strong>");
+              client.println(adc1_get_raw(current_channel));
+              client.println("</strong></p>");
+            }
+
+            client.println(HTML_FOOTER);
+
+            //MUST flush data... otherwise no output
+            client.flush();
+            break;
+          }
+        }
+      }
+      // give the web browser time to receive the data
+      vTaskDelay(5);
+
+      // close the connection:
+      client.stop();
+      if (DEBUG) Serial.println("client processed");
+    }
+  }
+}
 
 
- * 
-  AsyncWebServer server(80);
-
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Hello World");
-  });
- 
-  server.begin();
-  */
-
+void setup_webserver() {
+  xTaskCreate(&webserver_ap_task, "webserver_ap_task", 2048, NULL, 1, NULL);
 }
 

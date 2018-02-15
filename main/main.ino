@@ -236,17 +236,15 @@ void setup() {
       start_power_saveing_mode();
       return;
     case WIFI_SERVER:
-      //setup_webserver();
-      break; //enter Loop?
+      setup_webserver();
+      xTaskCreate(&refresh_display, "refresh_display", 2048, NULL, 5, NULL);
+      return;
     case BT_LE_SLAVE:
       if (DEBUG) Serial.print("Not implemented yet! Starting Power safe mode");
     default: //unknown mode fallthrough
       save_operation_mode(POWER_SAVING);
       ESP.restart();
   }
-
-  xTaskCreate(&refresh_display, "refresh_display", 2048, NULL, 5, NULL);
-
 }
 
 
