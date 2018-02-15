@@ -25,7 +25,7 @@ int setup_deep_sleep(){
                 
   if(DEBUG){
       Serial.println("Boot count: " + String(boot_count));
-      Serial.println("External wakeup: " + String(ext_wakeup));
+      Serial.print("External wakeup: " + String(ext_wakeup) + " - ");
       print_wakeup_reason();
   }
   return boot_count;

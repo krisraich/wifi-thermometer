@@ -40,6 +40,40 @@
       4.B Program active: do nothing
 */
 
+/////////////////
+// Defines & Constants & PINS
+/////////////////
+
+#define DEBUG true
+
+#define DISABLE_DIAGNOSTIC_OUTPUT     /* Disables Output of Display class*/
+
+#define SLEEP_DURATION_SEC  20        /* Time ESP32 will go to sleep (in seconds) */
+#define BUFFER_TIME_EXT_WAKE_UP 500   /* Time ESP32 will wait befor next external wakeup (in milliseconds)*/
+
+#define uS_TO_S_FACTOR 1000000        /* Conversion factor for micro seconds to seconds */
+
+//onboard button for Wroom Dev Board
+#define ON_BOARD_BUTTON 0
+#define ON_BOARD_BUTTON_PULLDOWN_MODE true
+
+//onboard LED for Wroom Dev Board
+#define ON_BOARD_LED GPIO_NUM_27
+#define ON_BOARD_LED_PULLDOWN_MODE true
+
+//Touch button inputs
+#define TOUCH_THRESHOLD 40 //Greater the value, more the sensitivity
+#define MODE_TOUCH_BUTTON TOUCH_PAD_NUM1 // --> RTC_GPIO16 / TOUCH 6 / GPIO0 
+#define OK_TOUCH_BUTTON TOUCH_PAD_NUM2 // --> RTC_GPIO17 / TOUCH 7 / GPIO2 
+
+//Pin für LoLin / waveshare 2.9
+#define DISPLAY_BUSY 17 // Display BUSY = any GPIO
+#define DISPLAY_RST 16 //Display RESET = any GPIO
+#define DISPLAY_DC 4 //DATA/COMMAND = any GPIO
+#define DISPLAY_CS SS //SPI CHIP SELECT = PIN 5
+#define DISPLAY_CLK SCK //SPI CLOCK = Pin 18
+#define DISPLAY_DIN MOSI //SPI MOSI (master out slave in) = PIN 23
+
 
 /////////////////
 // LIBS
@@ -78,43 +112,10 @@
 //EEPROM
 #include "EEPROM.h"
 
-/////////////////
-// Defines & Constants
-/////////////////
-
-#define DEBUG true
-
-#define SLEEP_DURATION_SEC  20        /* Time ESP32 will go to sleep (in seconds) */
-#define BUFFER_TIME_EXT_WAKE_UP 500   /* Time ESP32 will wait befor next external wakeup (in milliseconds)*/
-
-#define uS_TO_S_FACTOR 1000000        /* Conversion factor for micro seconds to seconds */
 
 /////////////////
-// Pin Setup
+// Enums and other constants
 /////////////////
-
-//onboard button for Wroom Dev Board
-#define ON_BOARD_BUTTON 0
-#define ON_BOARD_BUTTON_PULLDOWN_MODE true
-
-//onboard LED for Wroom Dev Board
-#define ON_BOARD_LED GPIO_NUM_27
-#define ON_BOARD_LED_PULLDOWN_MODE true
-
-
-//Touch button inputs
-#define TOUCH_THRESHOLD 40 //Greater the value, more the sensitivity
-#define MODE_TOUCH_BUTTON TOUCH_PAD_NUM1 // --> RTC_GPIO16 / TOUCH 6 / GPIO0 
-#define OK_TOUCH_BUTTON TOUCH_PAD_NUM2 // --> RTC_GPIO17 / TOUCH 7 / GPIO2 
-
-
-//Pin für LoLin / waveshare 2.9
-#define DISPLAY_BUSY 17 // Display BUSY = any GPIO
-#define DISPLAY_RST 16 //Display RESET = any GPIO
-#define DISPLAY_DC 4 //DATA/COMMAND = any GPIO
-#define DISPLAY_CS SS //SPI CHIP SELECT = PIN 5
-#define DISPLAY_CLK SCK //SPI CLOCK = Pin 18
-#define DISPLAY_DIN MOSI //SPI MOSI (master out slave in) = PIN 23
 
 //Analog in for LoLin
 const adc1_channel_t ADC_CHANNELS[6] {
@@ -125,7 +126,6 @@ const adc1_channel_t ADC_CHANNELS[6] {
   ADC1_CHANNEL_6, //PIN A1.6/R4/34
   ADC1_CHANNEL_7  //PIN A1.7/R5/35
 };
-
 
 enum OPERATION_MODE{
   POWER_SAVING = 0,
@@ -139,15 +139,19 @@ enum BLINK_FREQUENCY{
   FAST = 20
 };
 
+
 /////////////////
 // Init Display
 /////////////////
+
 GxIO_Class io(SPI, DISPLAY_CS, DISPLAY_DC, DISPLAY_RST);  //SPI,SS,DC,RST
 GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
+
 
 /////////////////
 // Interrupt
 /////////////////
+
 void IRAM_ATTR mode_button_pressed() {
   if (DEBUG) Serial.println("mode interrupt");
   delay(100);
@@ -265,5 +269,4 @@ void loop() {
   
 
 }
-
 

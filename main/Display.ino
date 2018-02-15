@@ -28,7 +28,7 @@ void drawCornerTest()
 
 
 void setup_display(){
-  if(DEBUG) Serial.println("init display");
+  if(DEBUG) Serial.println("Initialize display");
   display.init();
   display.setRotation(3); //font orientation
 }

@@ -2,6 +2,7 @@
  * Dev board System Led = GPIO_NUM_27
  * PIN 6 = CPU Error
  * https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/Timer/RepeatTimer/RepeatTimer.ino
+ * LED PWM: https://techtutorialsx.com/2017/06/15/esp32-arduino-led-pwm-fading/
  */
 
 
