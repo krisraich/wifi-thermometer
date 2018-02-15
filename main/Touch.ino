@@ -34,7 +34,9 @@ void tp_set_thresholds(void){
     touch_pad_read_filtered(current_touch, &touch_value);
 
     touch_value = max(touch_value, MINUMUM_TOUCH_VALUE);
-
+    
+    if (DEBUG) Serial.println("touch value: " + String(touch_value));
+    
     //set interrupt threshold.
     ESP_ERROR_CHECK(touch_pad_set_thresh(current_touch, touch_value * 2 / 3));
   }
@@ -83,6 +85,7 @@ void tp_read_task(void *pvParameter){
         portEXIT_CRITICAL_ISR(&touch_mutex);
       }
     }
+    
     vTaskDelay(25);
   }
 }

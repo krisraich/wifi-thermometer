@@ -4,7 +4,7 @@
   Features:
     Supports up to 6 Sensors for temperature reading.
     Can operate in different Modes: Power-Saving, WiFi access point with webserver or Bluetooth low energy slave mode.
-    Displays temperatures on an E-Paper display or via Web browser. 
+    Displays temperatures on an E-Paper display or via Web browser.
     Pins are set for LoLin Lite board.
 
   Docs:
@@ -18,7 +18,7 @@
     Dev Board: Pin6 digital out = Error
 
   USED REPOSITORIES:
-    E-Paper: https://github.com/ZinggJM/GxEPD 
+    E-Paper: https://github.com/ZinggJM/GxEPD
     WebServer: https://github.com/me-no-dev/ESPAsyncWebServer & https://github.com/me-no-dev/AsyncTCP
     Via Librarie manager: Adafruit GFX, ArduinoJson
 
@@ -46,12 +46,11 @@
 
 #define DEBUG true
 
-#define DISABLE_DIAGNOSTIC_OUTPUT     /* Disables Output of Display class*/
 
-#define SLEEP_DURATION_SEC  60        /* Time ESP32 will go to sleep (in seconds) */
-//#define BUFFER_TIME_EXT_WAKE_UP 500   /* Time ESP32 will wait befor next external wakeup (in milliseconds)*/
+#define SLEEP_DURATION_SEC  10        /* Time between temp refresh */
 
-#define uS_TO_S_FACTOR 1000000        /* Conversion factor for micro seconds to seconds */
+#define WIFI_AP_SSID "ESP32"          //Hotspot ID
+//#define WIFI_AP_PASSWORD "TestTest123"     //Hotspot PW, Comment for open AP
 
 //onboard button for Wroom Dev Board
 #define ON_BOARD_BUTTON 0
@@ -63,8 +62,8 @@
 
 //Touch button inputs
 #define TOUCH_TIME 3 //time in measuring cycles. 1 Cylce 35ms
-#define MODE_TOUCH_BUTTON TOUCH_PAD_NUM3 //T3  // --> RTC_GPIO16 / TOUCH 6 / GPIO0 
-#define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // T4  // --> RTC_GPIO17 / TOUCH 7 / GPIO2 
+#define MODE_TOUCH_BUTTON TOUCH_PAD_NUM3 //GPIO 15 See: https://github.com/espressif/arduino-esp32/blob/master/tools/sdk/include/driver/driver/touch_pad.h
+#define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // GPIO 13
 
 //Pin für LoLin / waveshare 2.9
 #define DISPLAY_BUSY 17 // Display BUSY = any GPIO
@@ -73,21 +72,26 @@
 #define DISPLAY_CS SS //SPI CHIP SELECT = PIN 5
 #define DISPLAY_CLK SCK //SPI CLOCK = Pin 18
 #define DISPLAY_DIN MOSI //SPI MOSI (master out slave in) = PIN 23
+#define DISABLE_DIAGNOSTIC_OUTPUT     /* Disables Output of Display class*/
 
 #define BATTERY_VOLTAGE_ANALOG_IN  ADC1_CHANNEL_0 //PIN VP
 
+#define uS_TO_S_FACTOR 1000000        /* Conversion factor for micro seconds to seconds */
 
 /////////////////
 // LIBS
 /////////////////
 
+//#include <stdio.h>
+
+//scheduler
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 //adc
 #include <driver/adc.h>
 
 //touch
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "driver/touch_pad.h"
 #include "soc/rtc_cntl_reg.h"
 #include "soc/sens_reg.h"
@@ -95,7 +99,7 @@
 //display
 #include <SPI.h>
 #include <GxEPD.h>
-#include <GxGDEH029A1/GxGDEH029A1.cpp> 
+#include <GxGDEH029A1/GxGDEH029A1.cpp>
 //more fonts: ~/Arduino/libraries/Adafruit_GFX_Library/Fonts
 #include <Fonts/FreeMonoBold9pt7b.h>
 #include <Fonts/FreeMonoBold12pt7b.h>
@@ -106,27 +110,25 @@
 #include "logo_mono.h"
 
 //webserver
-#include <AsyncTCP.h>
-#include <AsyncEventSource.h>
-#include <AsyncJson.h>
-#include <AsyncWebSocket.h>
-#include <ESPAsyncWebServer.h>
-#include <SPIFFSEditor.h>
-#include <StringArray.h>
-#include <WebAuthentication.h>
-#include <WebHandlerImpl.h>
-#include <WebResponseImpl.h>
 #include <WiFi.h>
+#include <FS.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
 //EEPROM
 #include "EEPROM.h"
 
 #define min(a,b) ((a)<(b)?(a):(b));
 #define max(a,b) ((a)>(b)?(a):(b));
+#define nope()  __asm__("nop\n\t"); 
 
 /////////////////
 // Enums and other constants
 /////////////////
+
+//Webserver & AP Defaults
+const IPAddress Ip(192, 168, 1, 1) ;
+const IPAddress NMask(255, 255, 255, 0);
 
 //Analog in for LoLin
 const adc1_channel_t ADC_CHANNELS[5] {
@@ -142,13 +144,13 @@ const touch_pad_t TOUCH_BUTTONS[2] {
   static_cast<touch_pad_t>(MODE_TOUCH_BUTTON),
 };
 
-enum OPERATION_MODE{
+enum OPERATION_MODE {
   POWER_SAVING = 0,
   WIFI_SERVER = 1,
   BT_LE_SLAVE = 2,
 };
 
-enum BLINK_FREQUENCY{
+enum BLINK_FREQUENCY {
   SLOW = 2,
   NORMAL = 10,
   FAST = 20
@@ -161,6 +163,17 @@ enum BLINK_FREQUENCY{
 GxIO_Class io(SPI, DISPLAY_CS, DISPLAY_DC, DISPLAY_RST);  //SPI,SS,DC,RST
 GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
 
+/////////////////
+// Refresh Task
+/////////////////
+
+void refresh_display(void *pvParameter) {
+  while(true){
+    vTaskDelay(SLEEP_DURATION_SEC * 1000 / portTICK_PERIOD_MS);
+    if (DEBUG) Serial.println("Refreshing Display..");
+    display_temps_on_display();
+  }
+}
 
 /////////////////
 // Setup
@@ -168,7 +181,7 @@ GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
 void setup() {
 
   setup_led();
- 
+
   //Initialize serial and wait for port to open:
   if (DEBUG) {
     Serial.begin(115200);
@@ -178,22 +191,22 @@ void setup() {
   }
 
   led_start_blinking();
-  
+
   int bootups = setup_deep_sleep();
   setup_adc();
 
   setup_data_store();
-  
+
   setup_display();
-    
+
   //enter only on reset
   if (bootups == 1) {
     calibrate_adcs();
   }
 
 
-  switch(bootups % 2){
-     
+  switch (bootups % 2) {
+
     case 0:
       display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
       break;
@@ -208,62 +221,54 @@ void setup() {
   setup_touch();
 
 
-  OPERATION_MODE opm = get_last_operation_mode();
-  if (DEBUG){
-    Serial.print("Starting operation mode: ");
-    Serial.println(operation_mode_to_string(opm));
+  //after ini, show temps
+  display_temps_on_display();
+
+
+  OPERATION_MODE opm = WIFI_SERVER;//get_last_operation_mode();
+  if (DEBUG) {
+    Serial.println("Starting operation mode: " + String(operation_mode_to_string(opm)));
   }
-  
- 
-  switch(opm){
+
+
+  switch (opm) {
     case POWER_SAVING:
       start_power_saveing_mode();
       return;
     case WIFI_SERVER:
-      setup_webserver();
-      //TODO: remove
-      save_operation_mode(POWER_SAVING);
-      return; //enter Loop?
+      //setup_webserver();
+      break; //enter Loop?
     case BT_LE_SLAVE:
       if (DEBUG) Serial.print("Not implemented yet! Starting Power safe mode");
     default: //unknown mode fallthrough
       save_operation_mode(POWER_SAVING);
       ESP.restart();
-    
   }
-  
+
+  xTaskCreate(&refresh_display, "refresh_display", 2048, NULL, 5, NULL);
+
 }
 
 
-void start_power_saveing_mode(){
-  if (DEBUG) Serial.println("Energy Saving Mode");
-
+void start_power_saveing_mode() {
   deep_sleep_wake_up_after_time(SLEEP_DURATION_SEC);
   deep_sleep_wake_up_on_touch();
-
-  display_temps_on_display();
-
   led_stop_blinking();
   deep_sleep_start();
 }
 
-void touch_button_pressed(touch_pad_t pressed_button, bool on_boot){
-  if(on_boot){
+void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
+  if (on_boot) {
     Serial.println("Touch waked up ESP32!");
   }
-  Serial.print("touch pin: ");
-  Serial.println(pressed_button);
+  Serial.println("touch pin: " + String(pressed_button));
 }
-
 
 /////////////////
 // Loop - not executed in power saving mode
 /////////////////
 void loop() {
-
-  //display_temps_on_display();
-  //Serial.println("Idle");
-  delay(2000);  
-
+   //nope();
+  vTaskDelay(100000);
 }
 
