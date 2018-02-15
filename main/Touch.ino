@@ -10,8 +10,10 @@
 
 #define DECAYING_FAKTOR 3 //lower = faster degreading
 
+#define MINUMUM_TOUCH_VALUE 7000 // if user holds a touchpad while settig the thresholds it falsifies the value
+
 int s_pad_activated[TOUCH_PAD_MAX];
-portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
+portMUX_TYPE touch_mutex = portMUX_INITIALIZER_UNLOCKED;
 
 /*
   Read values sensed at all available touch pads.
@@ -30,6 +32,9 @@ void tp_set_thresholds(void){
   for (touch_pad_t current_touch : TOUCH_BUTTONS){  
     //read filtered value
     touch_pad_read_filtered(current_touch, &touch_value);
+
+    touch_value = max(touch_value, MINUMUM_TOUCH_VALUE);
+
     //set interrupt threshold.
     ESP_ERROR_CHECK(touch_pad_set_thresh(current_touch, touch_value * 2 / 3));
   }
@@ -68,14 +73,14 @@ void tp_read_task(void *pvParameter){
         touch_button_pressed(current_touch, false);
         
         // Clear information on pad activation
-        portENTER_CRITICAL(&mux);
+        portENTER_CRITICAL(&touch_mutex);
         s_pad_activated[current_touch] = 0;
-        portEXIT_CRITICAL(&mux);
+        portEXIT_CRITICAL(&touch_mutex);
       }else if(s_pad_activated[current_touch] > 0){
-        portENTER_CRITICAL_ISR(&mux);
+        portENTER_CRITICAL_ISR(&touch_mutex);
         //decaying valuee
         s_pad_activated[current_touch]--;
-        portEXIT_CRITICAL_ISR(&mux);
+        portEXIT_CRITICAL_ISR(&touch_mutex);
       }
     }
     vTaskDelay(25);
@@ -94,9 +99,9 @@ void IRAM_ATTR tp_rtc_intr(void * arg){
   
   for (touch_pad_t current_touch : TOUCH_BUTTONS){
     if ((pad_intr >> current_touch) & 0x01) {
-      portENTER_CRITICAL_ISR(&mux);
+      portENTER_CRITICAL_ISR(&touch_mutex);
       s_pad_activated[current_touch] += DECAYING_FAKTOR;
-      portEXIT_CRITICAL_ISR(&mux);
+      portEXIT_CRITICAL_ISR(&touch_mutex);
     }
   }
 }

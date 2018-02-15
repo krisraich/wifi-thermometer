@@ -48,8 +48,8 @@
 
 #define DISABLE_DIAGNOSTIC_OUTPUT     /* Disables Output of Display class*/
 
-#define SLEEP_DURATION_SEC  20        /* Time ESP32 will go to sleep (in seconds) */
-#define BUFFER_TIME_EXT_WAKE_UP 500   /* Time ESP32 will wait befor next external wakeup (in milliseconds)*/
+#define SLEEP_DURATION_SEC  60        /* Time ESP32 will go to sleep (in seconds) */
+//#define BUFFER_TIME_EXT_WAKE_UP 500   /* Time ESP32 will wait befor next external wakeup (in milliseconds)*/
 
 #define uS_TO_S_FACTOR 1000000        /* Conversion factor for micro seconds to seconds */
 
@@ -73,6 +73,8 @@
 #define DISPLAY_CS SS //SPI CHIP SELECT = PIN 5
 #define DISPLAY_CLK SCK //SPI CLOCK = Pin 18
 #define DISPLAY_DIN MOSI //SPI MOSI (master out slave in) = PIN 23
+
+#define BATTERY_VOLTAGE_ANALOG_IN  ADC1_CHANNEL_0 //PIN VP
 
 
 /////////////////
@@ -101,7 +103,6 @@
 #include <Fonts/FreeMonoBold24pt7b.h>
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
-#include "logo_4c.h"
 #include "logo_mono.h"
 
 //webserver
@@ -120,14 +121,15 @@
 //EEPROM
 #include "EEPROM.h"
 
+#define min(a,b) ((a)<(b)?(a):(b));
+#define max(a,b) ((a)>(b)?(a):(b));
 
 /////////////////
 // Enums and other constants
 /////////////////
 
 //Analog in for LoLin
-const adc1_channel_t ADC_CHANNELS[6] {
-  ADC1_CHANNEL_0, //PIN VP
+const adc1_channel_t ADC_CHANNELS[5] {
   ADC1_CHANNEL_3, //PIN VN
   ADC1_CHANNEL_4, //PIN A1.4/R9/32
   ADC1_CHANNEL_5, //PIN A1.5/R8/33
@@ -193,11 +195,9 @@ void setup() {
   switch(bootups % 2){
      
     case 0:
-      //display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_invert | GxEPD::bm_flip_y);
-      display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert);
+      display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
       break;
     case 1:
-      //display.drawBitmap(gImage_logo_mono, sizeof(gImage_logo_mono), GxEPD::bm_normal | GxEPD::bm_flip_y);
       display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_normal);
       break;
     case 2:

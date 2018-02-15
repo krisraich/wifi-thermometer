@@ -9,6 +9,16 @@
 
 //#define ADC_ATTENUATION ADC_ATTEN_11db
 
+
+double get_battery_voltage(){
+  int reading = adc1_get_raw(BATTERY_VOLTAGE_ANALOG_IN);
+  //Serial.println(reading);
+  if(reading < 1 || reading >= 4095) return -1;
+  //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
+  return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
+} 
+
+
 void setup_adc(){
   adc1_config_width(ADC_WIDTH_12Bit);
   
@@ -17,20 +27,14 @@ void setup_adc(){
       adc1_config_channel_atten(current_channel, ADC_ATTENUATION); 
     }
   #endif
+
+  //set up battery reader
+  if(DEBUG){
+    Serial.print("Setup ADC, Battery voltage: ");
+    Serial.println(get_battery_voltage());
+  }
+  
 }
-
-double read_volt_from_channel(adc1_channel_t adc_channel){
- return convert_to_volt(adc1_get_raw(adc_channel));
-}
-
-
-double convert_to_volt(int reading){
-  //Serial.println(reading);
-  if(reading < 1 || reading >= 4095) return -1;
-  //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
-  return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
-} 
-
 
 
 void calibrate_adcs(){
