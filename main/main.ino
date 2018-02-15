@@ -62,9 +62,9 @@
 #define ON_BOARD_LED_PULLDOWN_MODE true
 
 //Touch button inputs
-#define TOUCH_THRESHOLD 40 //Greater the value, more the sensitivity
-#define MODE_TOUCH_BUTTON TOUCH_PAD_NUM1 // --> RTC_GPIO16 / TOUCH 6 / GPIO0 
-#define OK_TOUCH_BUTTON TOUCH_PAD_NUM2 // --> RTC_GPIO17 / TOUCH 7 / GPIO2 
+#define TOUCH_TIME 3 //time in measuring cycles. 1 Cylce 35ms
+#define MODE_TOUCH_BUTTON TOUCH_PAD_NUM3 //T3  // --> RTC_GPIO16 / TOUCH 6 / GPIO0 
+#define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // T4  // --> RTC_GPIO17 / TOUCH 7 / GPIO2 
 
 //Pin für LoLin / waveshare 2.9
 #define DISPLAY_BUSY 17 // Display BUSY = any GPIO
@@ -81,6 +81,14 @@
 
 //adc
 #include <driver/adc.h>
+
+//touch
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/touch_pad.h"
+#include "soc/rtc_cntl_reg.h"
+#include "soc/sens_reg.h"
 
 //display
 #include <SPI.h>
@@ -127,6 +135,11 @@ const adc1_channel_t ADC_CHANNELS[6] {
   ADC1_CHANNEL_7  //PIN A1.7/R5/35
 };
 
+const touch_pad_t TOUCH_BUTTONS[2] {
+  static_cast<touch_pad_t>(OK_TOUCH_BUTTON),
+  static_cast<touch_pad_t>(MODE_TOUCH_BUTTON),
+};
+
 enum OPERATION_MODE{
   POWER_SAVING = 0,
   WIFI_SERVER = 1,
@@ -139,27 +152,12 @@ enum BLINK_FREQUENCY{
   FAST = 20
 };
 
-
 /////////////////
 // Init Display
 /////////////////
 
 GxIO_Class io(SPI, DISPLAY_CS, DISPLAY_DC, DISPLAY_RST);  //SPI,SS,DC,RST
 GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
-
-
-/////////////////
-// Interrupt
-/////////////////
-
-void IRAM_ATTR mode_button_pressed() {
-  if (DEBUG) Serial.println("mode interrupt");
-  delay(100);
-}
-void IRAM_ATTR ok_button_pressed() {
-  if (DEBUG) Serial.println("ok/refresh interrupt");
-  delay(100);
-}
 
 
 /////////////////
@@ -177,10 +175,8 @@ void setup() {
     }
   }
 
-  
   led_start_blinking();
   
-
   int bootups = setup_deep_sleep();
   setup_adc();
 
@@ -227,7 +223,7 @@ void setup() {
 
   switch(opm){
     case POWER_SAVING:
-      start_power_saveing_mode();
+      //start_power_saveing_mode();
       return;
     case WIFI_SERVER:
       setup_webserver();
@@ -257,16 +253,20 @@ void start_power_saveing_mode(){
   deep_sleep_start();
 }
 
+void touch_button_pressed(touch_pad_t pressed_button){
+    Serial.print("touch active pin: ");
+    Serial.println(pressed_button);
+}
+
 
 /////////////////
 // Loop - not executed in power saving mode
 /////////////////
 void loop() {
 
-  Serial.println("Wifi Active...");
-  display_temps_on_display();
-  delay(5000);
-  
+  //display_temps_on_display();
+  //Serial.println("Idle");
+  delay(2000);  
 
 }
 
