@@ -23,18 +23,16 @@ portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
   is running (on application start).
  */
 void tp_set_thresholds(void){
-  
-    uint16_t touch_value;
-    //delay some time in order to make the filter work and get a initial value
-    vTaskDelay(500/portTICK_PERIOD_MS);
+  uint16_t touch_value;
+  //delay some time in order to make the filter work and get a initial value
+  vTaskDelay(500/portTICK_PERIOD_MS);
 
-    for (touch_pad_t current_touch : TOUCH_BUTTONS){  
-        //read filtered value
-        touch_pad_read_filtered(current_touch, &touch_value);
-        //set interrupt threshold.
-        ESP_ERROR_CHECK(touch_pad_set_thresh(current_touch, touch_value * 2 / 3));
-
-    }
+  for (touch_pad_t current_touch : TOUCH_BUTTONS){  
+    //read filtered value
+    touch_pad_read_filtered(current_touch, &touch_value);
+    //set interrupt threshold.
+    ESP_ERROR_CHECK(touch_pad_set_thresh(current_touch, touch_value * 2 / 3));
+  }
 }
 
 /*
@@ -56,27 +54,32 @@ void tp_set_thresholds(void){
   The difference caused by a 'touch' action could be very small, but we can still use
   filter mode to detect a 'touch' event.
  */
-void tp_read_task(void *pvParameter)
-{
-    while (true) {
-      for (touch_pad_t current_touch : TOUCH_BUTTONS){
-          if (s_pad_activated[current_touch] >= TOUCH_TIME * DECAYING_FAKTOR) {
+void tp_read_task(void *pvParameter){
+  
+  //call when touch waked up ESP32
+  if(was_waked_up_by_touch()){
+    touch_button_pressed(get_wakeup_toch(), true);
+  }
+  
+  while (true) {
+    for (touch_pad_t current_touch : TOUCH_BUTTONS){
+      if (s_pad_activated[current_touch] >= TOUCH_TIME * DECAYING_FAKTOR) {
 
-              touch_button_pressed(current_touch);
-              
-              // Clear information on pad activation
-              portENTER_CRITICAL(&mux);
-              s_pad_activated[current_touch] = 0;
-              portEXIT_CRITICAL(&mux);
-          }else if(s_pad_activated[current_touch] > 0){
-              portENTER_CRITICAL_ISR(&mux);
-              //decaying valuee
-              s_pad_activated[current_touch]--;
-              portEXIT_CRITICAL_ISR(&mux);
-          }
+        touch_button_pressed(current_touch, false);
+        
+        // Clear information on pad activation
+        portENTER_CRITICAL(&mux);
+        s_pad_activated[current_touch] = 0;
+        portEXIT_CRITICAL(&mux);
+      }else if(s_pad_activated[current_touch] > 0){
+        portENTER_CRITICAL_ISR(&mux);
+        //decaying valuee
+        s_pad_activated[current_touch]--;
+        portEXIT_CRITICAL_ISR(&mux);
       }
-      vTaskDelay(25);
-   }
+    }
+    vTaskDelay(25);
+  }
 }
 
 /*
@@ -84,60 +87,61 @@ void tp_read_task(void *pvParameter)
   Recognize what pad has been touched and save it in a table.
  */
 void IRAM_ATTR tp_rtc_intr(void * arg){
-    uint32_t pad_intr = touch_pad_get_status();
-    
-    //clear interrupt
-    touch_pad_clear_status();
-
-    for (touch_pad_t current_touch : TOUCH_BUTTONS){
-        if ((pad_intr >> current_touch) & 0x01) {
-            portENTER_CRITICAL_ISR(&mux);
-            s_pad_activated[current_touch] += DECAYING_FAKTOR;
-            portEXIT_CRITICAL_ISR(&mux);
-        }
+  uint32_t pad_intr = touch_pad_get_status();
+  
+  //clear interrupt
+  touch_pad_clear_status();
+  
+  for (touch_pad_t current_touch : TOUCH_BUTTONS){
+    if ((pad_intr >> current_touch) & 0x01) {
+      portENTER_CRITICAL_ISR(&mux);
+      s_pad_activated[current_touch] += DECAYING_FAKTOR;
+      portEXIT_CRITICAL_ISR(&mux);
     }
+  }
 }
 
 /*
  * Before reading touch pad, we need to initialize the RTC IO.
  */
 void tp_touch_pad_init(){
-    for (touch_pad_t current_touch : TOUCH_BUTTONS){ 
-        //init RTC IO and mode for touch pad.
-        touch_pad_config(current_touch, 0); //Enabling sensor but with threshold 0
-    }
+  for (touch_pad_t current_touch : TOUCH_BUTTONS){ 
+    //init RTC IO and mode for touch pad.
+    touch_pad_config(current_touch, 0); //Enabling sensor but with threshold 0
+  }
 }
 
 void setup_touch(){
+
+  // Initialize touch pad peripheral, it will start a timer to run a filter
+  if (DEBUG) Serial.println("Initializing touch pad");
   
-    // Initialize touch pad peripheral, it will start a timer to run a filter
-    if (DEBUG) Serial.println("Initializing touch pad");
-    
-    touch_pad_init();
+  touch_pad_init();
 
-    // Initialize and start a software filter to detect slight change of capacitance.
-    touch_pad_filter_start(10);
-    
-    // Set measuring time and sleep time
-    // In this case, measurement will sustain 0xffff / 8Mhz = 8.19ms
-    // Meanwhile, sleep time between two measurement will be 0x1000 / 150Khz = 27.3 ms
-    touch_pad_set_meas_time(0x1000, 0xffff);
+  // Initialize and start a software filter to detect slight change of capacitance.
+  touch_pad_filter_start(10);
+  
+  // Set measuring time and sleep time
+  // In this case, measurement will sustain 0xffff / 8Mhz = 8.19ms
+  // Meanwhile, sleep time between two measurement will be 0x1000 / 150Khz = 27.3 ms
+  touch_pad_set_meas_time(0x1000, 0xffff);
 
-    //set reference voltage for charging/discharging
-    // In this case, the high reference valtage will be 2.4V - 1.5V = 0.9V
-    // The low reference voltage will be 0.8V, so that the procedure of charging
-    // and discharging would be very fast.
-    touch_pad_set_voltage(TOUCH_HVOLT_2V4, TOUCH_LVOLT_0V8, TOUCH_HVOLT_ATTEN_1V5);
-    // Init touch pad IO
-    tp_touch_pad_init();
-    // Set thresh hold
-    tp_set_thresholds();
-    // Register touch interrupt ISR
-    touch_pad_isr_register(tp_rtc_intr, NULL);
+  //set reference voltage for charging/discharging
+  // In this case, the high reference valtage will be 2.4V - 1.5V = 0.9V
+  // The low reference voltage will be 0.8V, so that the procedure of charging
+  // and discharging would be very fast.
+  touch_pad_set_voltage(TOUCH_HVOLT_2V4, TOUCH_LVOLT_0V8, TOUCH_HVOLT_ATTEN_1V5);
+  // Init touch pad IO
+  tp_touch_pad_init();
+  // Set thresh hold
+  tp_set_thresholds();
+  // Register touch interrupt ISR
+  touch_pad_isr_register(tp_rtc_intr, NULL);
 
-    // Start a task to show what pads have been touched
-    xTaskCreate(&tp_read_task, "touch_pad_read_task", 2048, NULL, 5, NULL);
+  // Start a task to show what pads have been touched
+  xTaskCreate(&tp_read_task, "touch_pad_read_task", 2048, NULL, 5, NULL);
 
-    //enable interrupts
-    touch_pad_intr_enable();  //touch_pad_intr_disable()
+  //enable interrupts
+  touch_pad_intr_enable();  //touch_pad_intr_disable()
+
 }

@@ -214,16 +214,10 @@ void setup() {
     Serial.println(operation_mode_to_string(opm));
   }
   
-  /*
-    gpio_set_pull_mode(MODE_SWITCH_PIN, MODE_SWITCH_ON_HIGH ? GPIO_PULLDOWN_ONLY : GPIO_PULLUP_ONLY);
-    pinMode(MODE_SWITCH_PIN, MODE_SWITCH_ON_HIGH ? INPUT : INPUT_PULLUP); // MODE SWITCHER INPUT / INPUT_PULLUP for High
-    attachInterrupt(digitalPinToInterrupt(MODE_SWITCH_PIN), handleInterrupt, CHANGE);
-  */
-
-
+ 
   switch(opm){
     case POWER_SAVING:
-      //start_power_saveing_mode();
+      start_power_saveing_mode();
       return;
     case WIFI_SERVER:
       setup_webserver();
@@ -253,9 +247,12 @@ void start_power_saveing_mode(){
   deep_sleep_start();
 }
 
-void touch_button_pressed(touch_pad_t pressed_button){
-    Serial.print("touch active pin: ");
-    Serial.println(pressed_button);
+void touch_button_pressed(touch_pad_t pressed_button, bool on_boot){
+  if(on_boot){
+    Serial.println("Touch waked up ESP32!");
+  }
+  Serial.print("touch pin: ");
+  Serial.println(pressed_button);
 }
 
 

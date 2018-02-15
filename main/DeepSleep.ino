@@ -12,16 +12,37 @@
 RTC_DATA_ATTR bool ext_wakeup = false;
 RTC_DATA_ATTR int boot_count = 0;
 
+int wakeup_reason;
+touch_pad_t wakeup_toch;
+
+int get_bootups(){
+  return boot_count;
+}
+
+bool was_waked_up_by_touch(){
+  return wakeup_reason == 4;
+}
+
+touch_pad_t get_wakeup_toch(){
+  return wakeup_toch;
+}
+
+
+
 int setup_deep_sleep(){
   boot_count++;
 
   //when enabled, RTC_DATA_ATTR is not stored?
   //esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_FAST_MEM, ESP_PD_OPTION_OFF);
-  
-  esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+
+  wakeup_reason = esp_sleep_get_wakeup_cause();
   ext_wakeup = (wakeup_reason == 1 ||  //ESP_DEEP_SLEEP_WAKEUP_EXT0
                 wakeup_reason == 2 || //ESP_DEEP_SLEEP_WAKEUP_EXT1
                 wakeup_reason == 4); //ESP_DEEP_SLEEP_WAKEUP_TOUCHPAD
+
+  if(was_waked_up_by_touch()){
+    wakeup_toch = esp_sleep_get_touchpad_wakeup_status();
+  }
                 
   if(DEBUG){
       Serial.println("Boot count: " + String(boot_count));
@@ -31,9 +52,6 @@ int setup_deep_sleep(){
   return boot_count;
 }
 
-int get_bootups(){
-  return boot_count;
-}
 
 void deep_sleep_wake_up_after_time(int sleepSeconds){  
   esp_sleep_enable_timer_wakeup(sleepSeconds * uS_TO_S_FACTOR);
@@ -82,12 +100,15 @@ Method to print the reason by which ESP32
 has been awaken from sleep
 */
 void print_wakeup_reason(){
-  switch(esp_sleep_get_wakeup_cause())
+  switch(wakeup_reason)
   {
     case 1  : Serial.println("Wakeup caused by external signal using RTC_IO"); break;
     case 2  : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
     case 3  : Serial.println("Wakeup caused by timer"); break;
-    case 4  : Serial.println("Wakeup caused by touchpad on pin: " + esp_sleep_get_touchpad_wakeup_status()); break;
+    case 4  : 
+      Serial.print("Wakeup caused by touchpad on pin: "); 
+      Serial.println();
+      break;
     case 5  : Serial.println("Wakeup caused by ULP program"); break;
     default : Serial.println("Wakeup was not caused by deep sleep"); break;
   }
