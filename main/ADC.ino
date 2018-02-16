@@ -39,7 +39,7 @@ void setup_adc(){
 
 void calibrate_adcs(){
   Serial.println("Hold calibration Button for 5 Seconds for calibration");
-  delay(1000);
+  delay(mS_TO_S_FACTOR);
   if(! button_has_been_pressed(4000, ON_BOARD_BUTTON, ON_BOARD_BUTTON_PULLDOWN_MODE)){
     Serial.println("Aborting... load normal routine");
     return;

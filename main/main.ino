@@ -80,6 +80,7 @@
 #define BATTERY_VOLTAGE_ANALOG_IN  ADC1_CHANNEL_0 //PIN VP
 
 #define uS_TO_S_FACTOR 1000000        /* Conversion factor for micro seconds to seconds */
+#define mS_TO_S_FACTOR 1000        /* Conversion factor for milli seconds to seconds */
 
 /////////////////
 // LIBS
@@ -118,6 +119,7 @@
 //EEPROM
 #include "EEPROM.h"
 
+//handy functions
 #define min(a,b) ((a)<(b)?(a):(b));
 #define max(a,b) ((a)>(b)?(a):(b));
 #define nope()  __asm__("nop\n\t"); 
@@ -169,7 +171,7 @@ GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
 
 void refresh_display(void *pvParameter) {
   while(true){
-    vTaskDelay(SLEEP_DURATION_SEC * 1000 / portTICK_PERIOD_MS);
+    vTaskDelay(SLEEP_DURATION_SEC * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
     if (DEBUG) Serial.println("Refreshing Display..");
     update_display();
   }
@@ -186,7 +188,7 @@ void setup() {
   if (DEBUG) {
     Serial.begin(115200);
     while (!Serial) {
-      ; // wait for serial port to connect. Needed for native USB port only
+      delay(10); // wait for serial port to connect. Needed for native USB port only
     }
   }
 

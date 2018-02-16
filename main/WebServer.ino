@@ -78,6 +78,11 @@ void webserver_ap_task(void *pvParameter) {
               client.println("</strong></p>");
             }
 
+            client.println("<p>Battery Voltage is: <strong>");
+            client.println(get_battery_voltage());
+            client.println("V</strong></p>");
+          
+
             client.println(HTML_FOOTER);
 
             //MUST flush data... otherwise no output
