@@ -1,12 +1,9 @@
 /*
-     https://www.arduino.cc/en/Reference/WiFi101BeginAP
-     https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
-     https://techtutorialsx.com/2017/05/09/esp32-running-code-on-a-specific-core/
-
-     https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi/src
-
-     https://techtutorialsx.com/2017/12/01/esp32-arduino-asynchronous-http-webserver/
-*/
+ * Not used: https://techtutorialsx.com/2017/12/01/esp32-arduino-asynchronous-http-webserver/
+ * https://www.arduino.cc/en/Reference/WiFi101BeginAP
+ * https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi/src
+ * 
+ */
 
 const char HTML_HEAD[] = "<!DOCTYPE html><html><head><title>Grillthermometer</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta http-equiv=\"refresh\" content=\"10\"></head><body><h1>Grillthermometer</h1>";
 const char HTML_FOOTER[] = "<footer>By Kris 2018 &#8226; Pitztaler Grillverein &#8226; <a href=\"https://grillverein.tirol\">grillverein.tirol</a> &#8226; <a href=\"mailto:info@grillverein.tirol\">info@grillverein.tirol</a></footer></body></html>";
@@ -43,7 +40,11 @@ void webserver_ap_task(void *pvParameter) {
     WiFiClient client = web_server.available();
     if (client) {
       
-      if (DEBUG) Serial.println("New client");
+      if (DEBUG) {
+        IPAddress clientIP = client.remoteIP();
+        Serial.print("New client with IP: ");
+        Serial.println(clientIP);
+      }
       
       memset(linebuf, 0, sizeof(linebuf));
       charcount = 0;
@@ -61,7 +62,7 @@ void webserver_ap_task(void *pvParameter) {
           // so you can send a reply
           if (c == '\n' && currentLineIsBlank) {
 
-            if (DEBUG) Serial.println("send response to client");
+            //if (DEBUG) Serial.println("send response to client");
             
             // send a standard http response header
             client.println("HTTP/1.1 200 OK");
@@ -96,7 +97,7 @@ void webserver_ap_task(void *pvParameter) {
 
       // close the connection:
       client.stop();
-      if (DEBUG) Serial.println("client processed");
+      //if (DEBUG) Serial.println("client processed");
     }
   }
 }

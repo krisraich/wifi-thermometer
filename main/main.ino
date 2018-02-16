@@ -12,6 +12,7 @@
     Wroom Dev Board Doc: https://www.espressif.com/sites/default/files/documentation/esp-wroom-32_datasheet_en.pdf
     ESP32 Datasheet: https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf
     LoLin Lite: https://wiki.wemos.cc/products:lolin32:lolin32_lite
+    LoLin Lite Schema: https://wiki.wemos.cc/_media/products:lolin32:sch_lolin32_lite_v1.0.0.pdf
     Arduino Pins: https://github.com/espressif/arduino-esp32/blob/master/variants/nodemcu-32s/pins_arduino.h
 
   Dev Notes:
@@ -52,8 +53,8 @@
 
 #define SLEEP_DURATION_SEC  10        /* Time between temp refresh */
 
-#define WIFI_AP_SSID "ESP32"          //Hotspot ID
-//#define WIFI_AP_PASSWORD "TestTest123"     //Hotspot PW, Comment for open AP
+#define WIFI_AP_SSID "ESP32"              //Hotspot ID
+//#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot PW, Comment for open AP
 
 //onboard button for Wroom Dev Board
 #define ON_BOARD_BUTTON 0
@@ -79,14 +80,12 @@
 
 #define BATTERY_VOLTAGE_ANALOG_IN  ADC1_CHANNEL_0 //PIN VP
 
-#define uS_TO_S_FACTOR 1000000        /* Conversion factor for micro seconds to seconds */
+#define uS_TO_S_FACTOR 1000000     /* Conversion factor for micro seconds to seconds */
 #define mS_TO_S_FACTOR 1000        /* Conversion factor for milli seconds to seconds */
 
 /////////////////
 // LIBS
 /////////////////
-
-//#include <stdio.h>
 
 //scheduler
 #include "freertos/FreeRTOS.h"
