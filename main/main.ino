@@ -124,6 +124,7 @@
 #include "logo_mono.h"
 
 //webserver
+#include "logo_favicon.h"
 #include <WiFi.h>
 
 //EEPROM

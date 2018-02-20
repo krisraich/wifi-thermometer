@@ -7,6 +7,34 @@
 const char HTML_HEAD[] = "<!DOCTYPE html><html><head><title>Grillthermometer</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta http-equiv=\"refresh\" content=\"10\"></head><body><h1>Grillthermometer</h1>";
 const char HTML_FOOTER[] = "<footer>By Kris 2018 &#8226; Pitztaler Grillverein &#8226; <a href=\"https://grillverein.tirol\">grillverein.tirol</a> &#8226; <a href=\"mailto:info@grillverein.tirol\">info@grillverein.tirol</a></footer></body></html>";
 
+void sending_html(WiFiClient &client){
+   // send a standard http response header
+    client.println("Content-Type: text/html");
+    client.println();
+    client.println(HTML_HEAD);
+
+     for (adc1_channel_t current_channel : ADC_CHANNELS){      
+      client.println("<p>Sensor input No. ");
+      client.println(current_channel);
+      client.println(" is <strong>");
+      client.println(adc1_get_raw(current_channel));
+      client.println("</strong></p>");
+    }
+
+    client.println("<p>Battery Voltage is: <strong>");
+    client.println(get_battery_voltage());
+    client.println("V</strong></p>");
+  
+    client.println(HTML_FOOTER);
+}
+
+void sending_favicon(WiFiClient &client){
+  client.println("Content-Type: image/x-icon");
+  client.println();
+  for(const uint8_t &current_byte : logo_favicon){
+    client.write(current_byte);
+  }
+}
 
 void webserver_ap_task(void *pvParameter) {
 
@@ -51,48 +79,45 @@ void webserver_ap_task(void *pvParameter) {
       boolean currentLineIsBlank = true;
       while (client.connected()) {
         if (client.available()) {
-          char c = client.read();
-          Serial.write(c);
+          
+          char c = client.read(); //read byte for byte...
+          //Serial.write(c);
           //read char by char HTTP request
           linebuf[charcount] = c;
           if (charcount < sizeof(linebuf) - 1) charcount++;
+          
           // if you've gotten to the end of the line (received a newline
           // character) and the line is blank, the http request has ended,
           // so you can send a reply
           if (c == '\n' && currentLineIsBlank) {
 
-            //if (DEBUG) Serial.println("send response to client");
-            
-            // send a standard http response header
             client.println("HTTP/1.1 200 OK");
-            client.println("Content-Type: text/html");
-            client.println("Connection: close");  // the connection will be closed after completion of the response
-            client.println();
-            client.println(HTML_HEAD);
-
-             for (adc1_channel_t current_channel : ADC_CHANNELS){      
-              client.println("<p>Sensor input No. ");
-              client.println(current_channel);
-              client.println(" is <strong>");
-              client.println(adc1_get_raw(current_channel));
-              client.println("</strong></p>");
+            client.println("Connection: close");
+            
+            if (strstr(linebuf, "GET /favicon.ico") > 0) {
+              Serial.println("Sending favicon");
+              sending_favicon(client);
+            }else{
+              Serial.println("Sending website");
+              sending_html(client);
             }
-
-            client.println("<p>Battery Voltage is: <strong>");
-            client.println(get_battery_voltage());
-            client.println("V</strong></p>");
-          
-
-            client.println(HTML_FOOTER);
-
+           
             //MUST flush data... otherwise no output
             client.flush();
             break;
           }
+          if (c == '\n') {
+            // you're starting a new line
+            currentLineIsBlank = true;
+
+          } else if (c != '\r') {
+            // you've gotten a character on the current line
+            currentLineIsBlank = false;
+          }
         }
       }
       // give the web browser time to receive the data
-      vTaskDelay(5);
+      vTaskDelay(1 / portTICK_PERIOD_MS);
 
       // close the connection:
       client.stop();
