@@ -19,16 +19,13 @@ OPERATION_MODE get_last_operation_mode(){
 }
 
 void save_operation_mode(OPERATION_MODE operation_mode){
-  //uint8_t value = static_cast<uint8_t>(operation_mode);
-  EEPROM.write(LAST_OPERATION_MODE_ADDRESS, operation_mode);
-  EEPROM.commit();
+  OPERATION_MODE saved_operation_mode = get_last_operation_mode();
+  
+  //minimize writes
+  if(saved_operation_mode != operation_mode){
+    uint8_t value = static_cast<uint8_t>(operation_mode);
+    EEPROM.write(LAST_OPERATION_MODE_ADDRESS, value);
+    EEPROM.commit();
+  }
 }
-
-
-
-
-
-
-
-
 

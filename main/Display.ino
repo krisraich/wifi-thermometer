@@ -37,6 +37,8 @@ void setup_display(){
 
 void update_display(){
 
+  last_refresh = millis();
+
   if(DEBUG){
     Serial.println("----- Display Temps ------");
     for (adc1_channel_t current_channel : ADC_CHANNELS){      
@@ -48,14 +50,14 @@ void update_display(){
   
  }
 
- void show_menu(){
-  if(menu_open){
-    if(DEBUG) Serial.println("---- Switching mode -----");
-  }else{
-    menu_open = true;
-    if(DEBUG) Serial.println("----- Display Menu ------");
-  }
- }
+void show_menu(OPERATION_MODE operation_mode){
+  if(DEBUG) Serial.println("---- Showing Mode: " + String(operation_mode_to_string(operation_mode))+ " -----");
+}
+
+void show_shutdown(){
+  Serial.println("----- Shut down ------");
+}
+
 
 /*
  * f: FreeMonoBold9pt7b FreeMonoBold12pt7b FreeMonoBold18pt7b FreeMonoBold24pt7b

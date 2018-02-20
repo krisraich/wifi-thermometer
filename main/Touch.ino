@@ -152,6 +152,5 @@ void setup_touch(){
   if(was_waked_up_by_touch()){
     touch_button_pressed(get_wakeup_toch(), true);
   }
-  
-
+ 
 }

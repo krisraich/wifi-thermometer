@@ -24,6 +24,7 @@ static inline const char* operation_mode_to_string(OPERATION_MODE operation_mode
     case POWER_SAVING: return "POWER_SAVING";
     case WIFI_SERVER:  return "WIFI_SERVER";
     case BT_LE_SLAVE:  return "BT_LE_SLAVE";
+    case SHUTDOWN:     return "SHUTDOWN";
     default:           return "[Unknown OPERATION_MODE]";
   }
 }
@@ -33,8 +34,14 @@ static int count_adc_channels(){
   return (sizeof(ADC_CHANNELS)/sizeof(*ADC_CHANNELS));
 }
 
-
-
+static OPERATION_MODE cycle_through_modes(OPERATION_MODE operation_mode){
+   switch (operation_mode){
+    case POWER_SAVING: return WIFI_SERVER;
+    case WIFI_SERVER:  return SHUTDOWN;
+    case SHUTDOWN:     return POWER_SAVING;
+    default:           return POWER_SAVING;
+  }
+}
 
  
 

@@ -41,12 +41,22 @@ void setup_adc(){
 
 
 void calibrate_adcs(){
-  Serial.println("Hold calibration Button for 5 Seconds for calibration");
+  if(DEBUG) Serial.println("Hold calibration Button for 5 Seconds for calibration");
+
   delay(mS_TO_S_FACTOR);
   if(! button_has_been_pressed(4000, ON_BOARD_BUTTON, ON_BOARD_BUTTON_PULLDOWN_MODE)){
-    Serial.println("Aborting... load normal routine");
+    if(DEBUG) Serial.println("Aborting... load normal routine");
     return;
   }
+
+  if (!Serial) {
+    Serial.begin(115200);
+    while (!Serial) {
+      delay(10); // wait for serial port to connect. Needed for native USB port only
+    }
+  }
+  
+
   
   Serial.println("Now in calibration mode!");
   set_blink_frequency(FAST);

@@ -39,9 +39,9 @@
       4.A Menu active: lode next mode (cycle through 2.A - 2.D)
       4.B Program active: do nothing
 
-   ToDo:
-    1. Mode switch on button press
-    2. Menu open mode
+   Bugs:
+    1. Sometimes AP starts with IP: 192.168.1.4 instead of 192.168.1.1
+    2. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
 */
 
 /////////////////
@@ -49,7 +49,6 @@
 /////////////////
 
 #define DEBUG true
-
 
 #define SLEEP_DURATION_SEC  10        /* Time between temp refresh */
 
@@ -84,6 +83,8 @@
 
 #define uS_TO_S_FACTOR 1000000     /* Conversion factor for micro seconds to seconds */
 #define mS_TO_S_FACTOR 1000        /* Conversion factor for milli seconds to seconds */
+
+#define MIN_TIME_BETWEEN_REFRESH  1000 //zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann
 
 /////////////////
 // LIBS
@@ -151,6 +152,7 @@ enum OPERATION_MODE {
   POWER_SAVING = 0,
   WIFI_SERVER = 1,
   BT_LE_SLAVE = 2,
+  SHUTDOWN = 99
 };
 
 enum BLINK_FREQUENCY {
@@ -160,6 +162,9 @@ enum BLINK_FREQUENCY {
 };
 
 bool menu_open = false;
+unsigned long last_refresh = 0;
+OPERATION_MODE current_operation_mode;
+OPERATION_MODE selected_operation_mode;
 
 /////////////////
 // Init Display
@@ -174,14 +179,15 @@ GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
 
 void refresh_display(void *pvParameter) {
   while(true){
-    vTaskDelay(SLEEP_DURATION_SEC * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
-    if(!menu_open){
-      if (DEBUG) Serial.println("Refreshing Display..");
+    //only refresh when user hasn't refreshed it
+    if(!menu_open && millis() - last_refresh > SLEEP_DURATION_SEC * mS_TO_S_FACTOR){
+      if (DEBUG) Serial.println("Auto refreshing temps: ");
       update_display();
     }
     //else if (DEBUG) Serial.println("Menu is open, don't refresh display");
 
     record_temperatures();
+    vTaskDelay(SLEEP_DURATION_SEC * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
   }
 }
 
@@ -216,52 +222,38 @@ void setup() {
     calibrate_adcs();
   }
 
-
-  switch (bootups % 2) {
-
-    case 0:
-      display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
-      break;
-    case 1:
-      display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_normal);
-      break;
-    case 2:
-      print_big_text("L00t Boyzz!1", &FreeMonoBold18pt7b);
-      break;
-  }
-
   //also needed for deepsleep
   setup_touch();
 
-
-  //after ini, show temps
-  update_display();
-
-
-  OPERATION_MODE opm = WIFI_SERVER;//get_last_operation_mode();
-  if (DEBUG) {
-    Serial.println("Starting operation mode: " + String(operation_mode_to_string(opm)));
-  }
-
-
-  switch (opm) {
+  current_operation_mode = get_last_operation_mode();
+  selected_operation_mode = get_last_operation_mode(); //using current_operation_mode would copy the reference... 
+  
+  if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
+ 
+  switch (current_operation_mode) {
+    //fall back into POWER_SAVING
+    case BT_LE_SLAVE:
+      if (DEBUG) Serial.print("Not implemented yet! Starting Power safe mode");
+    default:
+      //set default
+      save_operation_mode(POWER_SAVING);
     case POWER_SAVING:
       if(!menu_open){
+        //after ini, show temps. except when menu is open
+        update_display();
         start_power_saveing_mode();
       }
       return;
     case WIFI_SERVER:
-      setup_webserver();
-      xTaskCreate(&refresh_display, "refresh_display", 2048, NULL, 5, NULL);
+      start_wifi_mode();
       return;
-    case BT_LE_SLAVE:
-      if (DEBUG) Serial.print("Not implemented yet! Starting Power safe mode");
-    default: //unknown mode fallthrough
-      save_operation_mode(POWER_SAVING);
-      ESP.restart();
   }
 }
 
+void start_wifi_mode(){
+  setup_webserver();
+  xTaskCreate(&refresh_display, "refresh_display", 2048, NULL, 5, NULL);
+}
 
 void start_power_saveing_mode() {
   deep_sleep_wake_up_after_time(SLEEP_DURATION_SEC);
@@ -270,24 +262,99 @@ void start_power_saveing_mode() {
   deep_sleep_start();
 }
 
+void default_procedure_on_error(){
+  if(DEBUG) Serial.println("Default procedure startet.. rebooting into POWER_SAVING");
+  save_operation_mode(POWER_SAVING);
+  //delay(1000);
+  ESP.restart();
+}
+
 void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
+
+  if(DEBUG) Serial.println("Touch input: " + String(pressed_button == OK_TOUCH_BUTTON ? "ok/refresh" : "mode"));
+  
   if (on_boot && pressed_button == OK_TOUCH_BUTTON) {
     //esp was woken up by user in power saving mode.,
     //so do nothing and just refresh the temps
   }else if (pressed_button == MODE_TOUCH_BUTTON) {
+    
     //when esp was woken up by user pressing the mode button,
     //always show menu, becaus it'll never go to sleep when the menu is open
     //since the menu is also called when esp is awake, just ignor boot option and show menu
-    show_menu();
+    if(menu_open){
+      if(DEBUG) Serial.print("switch mode from " + String(operation_mode_to_string(selected_operation_mode)));
+      selected_operation_mode = cycle_through_modes(selected_operation_mode);
+      if(DEBUG) Serial.println(" to " + String(operation_mode_to_string(selected_operation_mode)));
+    }else{
+      menu_open = true;
+    }
+    show_menu(selected_operation_mode);
+
   }else if(pressed_button == OK_TOUCH_BUTTON){
     // ok button is refresh button when menu is active
     if(menu_open){
-      if(DEBUG) Serial.println("----- Select mode -------");
+      //select menu ....
+      if(DEBUG) Serial.println("select mode! Going from " + String(operation_mode_to_string(current_operation_mode)) + " to " + String(operation_mode_to_string(selected_operation_mode)));
       menu_open = false;
-    }else{
-      if(DEBUG) Serial.println("---- Refresh temps ------");
+      
+      switch(selected_operation_mode){
+        
+        //only when mode was active and user waked up esp
+        case POWER_SAVING:
+          save_operation_mode(POWER_SAVING);
+          switch(current_operation_mode){
+            //going from POWER_SAVING to POWER_SAVING
+            case POWER_SAVING:
+              start_power_saveing_mode(); //menu is closed.. now go to sleep
+              break;
+            //going from WIFI_SERVER to POWER_SAVING
+            case WIFI_SERVER:
+              
+              //works?
+              esp_sleep_enable_timer_wakeup(200000);
+              esp_deep_sleep_start();
+              
+              //ESP.restart(); //needs restart to turn off wifi
+              break;
+            //default: mode has been saved and it should load next boot
+            default: ESP.restart();
+          }
+          break;
+
+        
+        case WIFI_SERVER:
+          save_operation_mode(WIFI_SERVER);
+          switch(current_operation_mode){
+            //going from POWER_SAVING to WIFI_SERVER
+            case POWER_SAVING:
+              current_operation_mode = WIFI_SERVER;
+              start_wifi_mode();
+              break;
+            //going from WIFI_SERVER to WIFI_SERVER
+            case WIFI_SERVER:
+              if (DEBUG) Serial.println("nothing todo...");
+              break;
+            //default: mode has been saved and it should load next boot
+            default: ESP.restart();
+          }
+          break;
+
+        case SHUTDOWN:
+          //save_operation_mode(POWER_SAVING);
+          show_shutdown();
+          deep_sleep_wake_up_after_time(2147483647); //68 years. should be enough
+          deep_sleep_start();
+          break;
+        
+        //default fallback
+        default: default_procedure_on_error();
+      }
+              
+    }else if(millis() - last_refresh > MIN_TIME_BETWEEN_REFRESH){
+      if(DEBUG) Serial.println("user refresh temps: ");
       update_display();
     }
+
   }else{
     if(DEBUG) Serial.println("You shouldn't see this...");
   }
@@ -299,6 +366,6 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
 /////////////////
 void loop() {
    //nope();
-  vTaskDelay(100000);
+  vTaskDelay(3 * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
 }
 

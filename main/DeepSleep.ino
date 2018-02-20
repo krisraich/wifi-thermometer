@@ -82,10 +82,9 @@ void deep_sleep_start(){
     Serial.println("Going to sleep now");
   }
   
-  //prevent looping on button hold
-  //if(ext_wakeup){
-    //delay(BUFFER_TIME_EXT_WAKE_UP);
-  //}
+  //little timeout 
+  delay(1000);
+  
   esp_deep_sleep_start();
 }
 
