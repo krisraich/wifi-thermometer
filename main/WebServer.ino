@@ -103,6 +103,6 @@ void webserver_ap_task(void *pvParameter) {
 
 
 void setup_webserver() {
-  xTaskCreate(&webserver_ap_task, "webserver_ap_task", 2048, NULL, 2, NULL);
+  xTaskCreate(&webserver_ap_task, "webserver_ap_task", 2048, NULL, WEBSERVER_TASK_PRIORITY, &webserver_handle);
 }
 

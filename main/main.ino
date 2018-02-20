@@ -85,6 +85,14 @@
 #define mS_TO_S_FACTOR 1000        /* Conversion factor for milli seconds to seconds */
 
 #define MIN_TIME_BETWEEN_REFRESH  1000 //zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann
+#define CLOSE_MENU_AFTER_TIME 6        /* Menü schließt automatisch nach x sekunden */
+
+#define TOUCH_READ_TASK_PRIORITY 40 //prioritäten direkt proportional, user inputs haben die größte prio..
+#define WEBSERVER_TASK_PRIORITY 15 
+#define REFRESH_TASK_PRIORITY 10
+#define AUTO_CLOSE_TASK_PRIORITY 5
+
+//#define INCLUDE_vTaskDelete 1
 
 /////////////////
 // LIBS
@@ -163,8 +171,14 @@ enum BLINK_FREQUENCY {
 
 bool menu_open = false;
 unsigned long last_refresh = 0;
+unsigned long menu_open_since = 0;
 OPERATION_MODE current_operation_mode;
 OPERATION_MODE selected_operation_mode;
+
+TaskHandle_t webserver_handle = NULL;
+TaskHandle_t touch_handle = NULL;
+TaskHandle_t refresh_handle = NULL;
+TaskHandle_t menu_close_handle = NULL;
 
 /////////////////
 // Init Display
@@ -174,7 +188,7 @@ GxIO_Class io(SPI, DISPLAY_CS, DISPLAY_DC, DISPLAY_RST);  //SPI,SS,DC,RST
 GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
 
 /////////////////
-// Refresh Task
+// maintenances tasks
 /////////////////
 
 void refresh_display(void *pvParameter) {
@@ -184,12 +198,27 @@ void refresh_display(void *pvParameter) {
       if (DEBUG) Serial.println("Auto refreshing temps: ");
       update_display();
     }
-    //else if (DEBUG) Serial.println("Menu is open, don't refresh display");
-
+    
     record_temperatures();
     vTaskDelay(SLEEP_DURATION_SEC * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
   }
 }
+
+void auto_close_menu(void *pvParameter){
+  while(true){
+    if(menu_open && millis() - menu_open_since > SLEEP_DURATION_SEC * mS_TO_S_FACTOR){
+      //auto close menu
+      if(DEBUG) Serial.println("Auto closing menu");
+      menu_open = false;
+      update_display();
+      if(current_operation_mode == POWER_SAVING){
+        start_power_saveing_mode();
+      }
+    }
+    vTaskDelay(SLEEP_DURATION_SEC * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
+  }
+}
+
 
 /////////////////
 // Setup
@@ -252,7 +281,7 @@ void setup() {
 
 void start_wifi_mode(){
   setup_webserver();
-  xTaskCreate(&refresh_display, "refresh_display", 2048, NULL, 5, NULL);
+  xTaskCreate(&refresh_display, "refresh_display", 2048, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
 }
 
 void start_power_saveing_mode() {
@@ -287,6 +316,10 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
       if(DEBUG) Serial.println(" to " + String(operation_mode_to_string(selected_operation_mode)));
     }else{
       menu_open = true;
+      menu_open_since = millis();
+      if(menu_close_handle == NULL){
+        xTaskCreate(&auto_close_menu, "auto_close_menu", 2048, NULL, AUTO_CLOSE_TASK_PRIORITY, &menu_close_handle);
+      }
     }
     show_menu(selected_operation_mode);
 
@@ -294,7 +327,8 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
     // ok button is refresh button when menu is active
     if(menu_open){
       //select menu ....
-      if(DEBUG) Serial.println("select mode! Going from " + String(operation_mode_to_string(current_operation_mode)) + " to " + String(operation_mode_to_string(selected_operation_mode)));
+      if(DEBUG) Serial.println("select mode! Going from " + String(operation_mode_to_string(current_operation_mode)) + 
+        " to " + String(operation_mode_to_string(selected_operation_mode)));
       menu_open = false;
       
       switch(selected_operation_mode){
@@ -303,37 +337,37 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
         case POWER_SAVING:
           save_operation_mode(POWER_SAVING);
           switch(current_operation_mode){
+            
             //going from POWER_SAVING to POWER_SAVING
             case POWER_SAVING:
               start_power_saveing_mode(); //menu is closed.. now go to sleep
               break;
+              
             //going from WIFI_SERVER to POWER_SAVING
             case WIFI_SERVER:
-              
-              //works?
-              esp_sleep_enable_timer_wakeup(200000);
-              esp_deep_sleep_start();
-              
-              //ESP.restart(); //needs restart to turn off wifi
+              ESP.restart(); //needs restart to turn off wifi
               break;
+              
             //default: mode has been saved and it should load next boot
             default: ESP.restart();
           }
           break;
-
         
         case WIFI_SERVER:
           save_operation_mode(WIFI_SERVER);
           switch(current_operation_mode){
+            
             //going from POWER_SAVING to WIFI_SERVER
             case POWER_SAVING:
               current_operation_mode = WIFI_SERVER;
               start_wifi_mode();
               break;
+            
             //going from WIFI_SERVER to WIFI_SERVER
             case WIFI_SERVER:
               if (DEBUG) Serial.println("nothing todo...");
               break;
+              
             //default: mode has been saved and it should load next boot
             default: ESP.restart();
           }

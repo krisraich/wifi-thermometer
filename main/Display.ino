@@ -35,6 +35,7 @@ void setup_display(){
   display.setRotation(3); //font orientation
 }
 
+
 void update_display(){
   if(DEBUG){
     Serial.println("----- Display Temps ------");
