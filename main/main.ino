@@ -54,7 +54,12 @@
 #define WIFI_AP_SSID "ESP32"              //Hotspot ID
 //#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot PW, Comment for open AP
 
-#define SHOW_MENU_ON_DISPLAY_TIME  7        /* Wie lange soll das Menü auf dem Display angezeigt werden  */
+#define SHOW_MENU_ON_DISPLAY_TIME  7      /* Wie lange soll das Menü auf dem Display angezeigt werden  */
+
+
+#define MINIMUM_BATTERY_VOLTAGE 2.8       /*Abschalt Spannung. für Lithium-Ionen-Akku. Tiefentladung bei 2.5V.
+                                            Minimale Betriebsspannung ESP32 2.3V + 0.1V Dropout vom Regler = 2.4V 
+                                            Bei 2.8V sollt genügend restkapazität vorhanden sein */
 
 //onboard button for Wroom Dev Board
 #define ON_BOARD_BUTTON 0
@@ -194,6 +199,10 @@ GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
 
 void refresh_display(void *pvParameter) {
   while(true){
+
+    check_battery_life();
+
+    
     //only refresh when user hasn't refreshed it
     if(!menu_open && ((millis() - last_refresh) > (SLEEP_DURATION_SEC * mS_TO_S_FACTOR))){
       if (DEBUG) Serial.println("Auto refreshing temps: ");
@@ -241,6 +250,8 @@ void setup() {
   int bootups = setup_deep_sleep();
   setup_adc();
 
+  check_battery_life();
+
   setup_data_store();
 
   setup_recorder();
@@ -277,6 +288,14 @@ void setup() {
     case WIFI_SERVER:
       start_wifi_mode();
       return;
+  }
+}
+
+void check_battery_life(){
+  if(get_battery_voltage() <= MINIMUM_BATTERY_VOLTAGE){
+    if (DEBUG) Serial.print("Battery is empty... shutting down");
+    show_empty_battery();
+    shutdown_esp();
   }
 }
 
@@ -377,8 +396,7 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
         case SHUTDOWN:
           //save_operation_mode(POWER_SAVING);
           show_shutdown();
-          deep_sleep_wake_up_after_time(2147483647); //68 years. should be enough
-          deep_sleep_start();
+          shutdown_esp();
           break;
         
         //default fallback

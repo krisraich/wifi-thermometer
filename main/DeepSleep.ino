@@ -88,6 +88,12 @@ void deep_sleep_start(){
   esp_deep_sleep_start();
 }
 
+void shutdown_esp(){
+  esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
+  deep_sleep_wake_up_after_time(2147483647); //68 years. should be enough
+  deep_sleep_start();
+}
+
 /*
 Method to print the reason by which ESP32
 has been awaken from sleep

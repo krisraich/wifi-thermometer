@@ -66,6 +66,13 @@ void show_shutdown(){
   display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
 }
 
+void show_empty_battery(){
+  Serial.println("----- Battery empty ------");
+  
+  //simulate time...
+  display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
+}
+
 
 /*
  * f: FreeMonoBold9pt7b FreeMonoBold12pt7b FreeMonoBold18pt7b FreeMonoBold24pt7b
