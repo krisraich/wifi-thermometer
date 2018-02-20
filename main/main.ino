@@ -49,13 +49,13 @@
 /////////////////
 
 #define DEBUG true
-
-#define SLEEP_DURATION_SEC  10        /* Time between temp refresh */
-
+#define SLEEP_DURATION_SEC  30            /* Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history*/
 #define TEMPERATUR_HISTORY_SAMPLE_RATIO  2 /* SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)  */
 
 #define WIFI_AP_SSID "ESP32"              //Hotspot ID
 //#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot PW, Comment for open AP
+
+#define SHOW_MENU_ON_DISPLAY_TIME  7        /* Wie lange soll das Menü auf dem Display angezeigt werden  */
 
 //onboard button for Wroom Dev Board
 #define ON_BOARD_BUTTON 0
@@ -169,9 +169,10 @@ enum BLINK_FREQUENCY {
   FAST = 20
 };
 
-bool menu_open = false;
-unsigned long last_refresh = 0;
-unsigned long menu_open_since = 0;
+bool menu_open = false; //menu is on display
+unsigned long last_refresh = 0; //last display refresh (controll refreshrate)
+unsigned long menu_open_since = 0; //time when menu was opend for auto closing
+
 OPERATION_MODE current_operation_mode;
 OPERATION_MODE selected_operation_mode;
 
@@ -194,7 +195,7 @@ GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
 void refresh_display(void *pvParameter) {
   while(true){
     //only refresh when user hasn't refreshed it
-    if(!menu_open && millis() - last_refresh > SLEEP_DURATION_SEC * mS_TO_S_FACTOR){
+    if(!menu_open && ((millis() - last_refresh) > (SLEEP_DURATION_SEC * mS_TO_S_FACTOR))){
       if (DEBUG) Serial.println("Auto refreshing temps: ");
       update_display();
     }
@@ -206,7 +207,7 @@ void refresh_display(void *pvParameter) {
 
 void auto_close_menu(void *pvParameter){
   while(true){
-    if(menu_open && millis() - menu_open_since > SLEEP_DURATION_SEC * mS_TO_S_FACTOR){
+    if(menu_open && ((millis() - menu_open_since) > (SHOW_MENU_ON_DISPLAY_TIME * mS_TO_S_FACTOR))){
       //auto close menu
       if(DEBUG) Serial.println("Auto closing menu");
       menu_open = false;
@@ -215,7 +216,7 @@ void auto_close_menu(void *pvParameter){
         start_power_saveing_mode();
       }
     }
-    vTaskDelay(SLEEP_DURATION_SEC * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
+    vTaskDelay(SHOW_MENU_ON_DISPLAY_TIME * 50 / portTICK_PERIOD_MS); //50 for no haste...
   }
 }
 
