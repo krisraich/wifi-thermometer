@@ -46,16 +46,23 @@ void webserver_ap_task(void *pvParameter) {
   WiFi.softAP(WIFI_AP_SSID);
 #endif
 
+  IPAddress myIP;
   // local_ip,   gateway,   subnet
-  WiFi.softAPConfig(Ip, Ip, NMask);
+  do{
+     WiFi.softAPConfig(Ip, Ip, NMask);
+     myIP = WiFi.softAPIP();
+     Serial.println(myIP);
+     if(myIP == Ip) break;
+     vTaskDelay(1 / portTICK_PERIOD_MS);
+  }while(true);
+ 
 
   if (DEBUG) {
-    IPAddress myIP = WiFi.softAPIP();
     Serial.print("AP IP address: ");
     Serial.println(myIP);
+    Serial.println("Starting Webserver");
   }
 
-  if (DEBUG) Serial.println("Starting Webserver");
   WiFiServer web_server(80);
   web_server.begin();
 
