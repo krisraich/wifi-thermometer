@@ -36,9 +36,6 @@ void setup_display(){
 }
 
 void update_display(){
-
-  last_refresh = millis();
-
   if(DEBUG){
     Serial.println("----- Display Temps ------");
     for (adc1_channel_t current_channel : ADC_CHANNELS){      
@@ -47,15 +44,25 @@ void update_display(){
     Serial.println("Battery Vlotage is: " + String(get_battery_voltage()));
     Serial.println("--------------------------");
   }
-  
- }
+  //simulate time...
+  display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
+  last_refresh = millis();
+}
 
 void show_menu(OPERATION_MODE operation_mode){
   if(DEBUG) Serial.println("---- Showing Mode: " + String(operation_mode_to_string(operation_mode))+ " -----");
+  
+  //simulate time...
+  display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
+  
+  last_refresh = millis();
 }
 
 void show_shutdown(){
   Serial.println("----- Shut down ------");
+  
+  //simulate time...
+  display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
 }
 
 
