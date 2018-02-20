@@ -2,7 +2,6 @@
  * Not used: https://techtutorialsx.com/2017/12/01/esp32-arduino-asynchronous-http-webserver/
  * https://www.arduino.cc/en/Reference/WiFi101BeginAP
  * https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi/src
- * 
  */
 
 const char HTML_HEAD[] = "<!DOCTYPE html><html><head><title>Grillthermometer</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta http-equiv=\"refresh\" content=\"10\"></head><body><h1>Grillthermometer</h1>";

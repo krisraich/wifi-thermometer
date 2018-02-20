@@ -53,6 +53,8 @@
 
 #define SLEEP_DURATION_SEC  10        /* Time between temp refresh */
 
+#define TEMPERATUR_HISTORY_SAMPLE_RATIO  2 /* SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)  */
+
 #define WIFI_AP_SSID "ESP32"              //Hotspot ID
 //#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot PW, Comment for open AP
 
@@ -132,7 +134,7 @@ const IPAddress Ip(192, 168, 1, 1) ;
 const IPAddress NMask(255, 255, 255, 0);
 
 //Analog in for LoLin
-const adc1_channel_t ADC_CHANNELS[5] {
+const adc1_channel_t ADC_CHANNELS[] {
   ADC1_CHANNEL_3, //PIN VN
   ADC1_CHANNEL_4, //PIN A1.4/R9/32
   ADC1_CHANNEL_5, //PIN A1.5/R8/33
@@ -140,7 +142,7 @@ const adc1_channel_t ADC_CHANNELS[5] {
   ADC1_CHANNEL_7  //PIN A1.7/R5/35
 };
 
-const touch_pad_t TOUCH_BUTTONS[2] {
+const touch_pad_t TOUCH_BUTTONS[] {
   static_cast<touch_pad_t>(OK_TOUCH_BUTTON),
   static_cast<touch_pad_t>(MODE_TOUCH_BUTTON),
 };
@@ -157,6 +159,8 @@ enum BLINK_FREQUENCY {
   FAST = 20
 };
 
+bool menu_open = false;
+
 /////////////////
 // Init Display
 /////////////////
@@ -171,8 +175,13 @@ GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
 void refresh_display(void *pvParameter) {
   while(true){
     vTaskDelay(SLEEP_DURATION_SEC * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
-    if (DEBUG) Serial.println("Refreshing Display..");
-    update_display();
+    if(!menu_open){
+      if (DEBUG) Serial.println("Refreshing Display..");
+      update_display();
+    }
+    //else if (DEBUG) Serial.println("Menu is open, don't refresh display");
+
+    record_temperatures();
   }
 }
 
@@ -197,6 +206,8 @@ void setup() {
   setup_adc();
 
   setup_data_store();
+
+  setup_recorder();
 
   setup_display();
 
@@ -235,7 +246,9 @@ void setup() {
 
   switch (opm) {
     case POWER_SAVING:
-      start_power_saveing_mode();
+      if(!menu_open){
+        start_power_saveing_mode();
+      }
       return;
     case WIFI_SERVER:
       setup_webserver();
@@ -258,19 +271,27 @@ void start_power_saveing_mode() {
 }
 
 void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
-  if (on_boot) {
-    //esp was woken up by user in power saving mode.. so do nothing
-    return;
-  }else if(pressed_button == OK_TOUCH_BUTTON){
-    // ok button is refresh button
-    update_display();
-  }else{
-    //Mode Button pressed
+  if (on_boot && pressed_button == OK_TOUCH_BUTTON) {
+    //esp was woken up by user in power saving mode.,
+    //so do nothing and just refresh the temps
+  }else if (pressed_button == MODE_TOUCH_BUTTON) {
+    //when esp was woken up by user pressing the mode button,
+    //always show menu, becaus it'll never go to sleep when the menu is open
+    //since the menu is also called when esp is awake, just ignor boot option and show menu
     show_menu();
+  }else if(pressed_button == OK_TOUCH_BUTTON){
+    // ok button is refresh button when menu is active
+    if(menu_open){
+      if(DEBUG) Serial.println("----- Select mode -------");
+      menu_open = false;
+    }else{
+      if(DEBUG) Serial.println("---- Refresh temps ------");
+      update_display();
+    }
+  }else{
+    if(DEBUG) Serial.println("You shouldn't see this...");
   }
   
-  
-  //Serial.println("touch pin: " + String(pressed_button));
 }
 
 /////////////////

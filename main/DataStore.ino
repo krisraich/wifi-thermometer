@@ -8,10 +8,8 @@
 #define LAST_OPERATION_MODE_ADDRESS 0
 
 void setup_data_store(){
-  if (!EEPROM.begin(EEPROM_SIZE) && DEBUG)
-  {
-    Serial.println("failed to initialise EEPROM"); delay(1000000);
-  }
+  EEPROM.begin(EEPROM_SIZE);
+  if (DEBUG) Serial.println("Init EEPROM"); 
 }
 
 
@@ -25,6 +23,12 @@ void save_operation_mode(OPERATION_MODE operation_mode){
   EEPROM.write(LAST_OPERATION_MODE_ADDRESS, operation_mode);
   EEPROM.commit();
 }
+
+
+
+
+
+
 
 
 

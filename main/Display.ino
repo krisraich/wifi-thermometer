@@ -30,7 +30,7 @@ void drawCornerTest()
 
 
 void setup_display(){
-  if(DEBUG) Serial.println("Initialize display");
+  if(DEBUG) Serial.println("Init Display");
   display.init();
   display.setRotation(3); //font orientation
 }
@@ -40,7 +40,7 @@ void update_display(){
   if(DEBUG){
     Serial.println("----- Display Temps ------");
     for (adc1_channel_t current_channel : ADC_CHANNELS){      
-      Serial.println("Sensor input No. " + String(current_channel) + " is " + String(adc1_get_raw(current_channel)));
+      Serial.println("Sensor input No. " + String(current_channel) + " is " + String(get_temperature_from_channel(current_channel)));
     }
     Serial.println("Battery Vlotage is: " + String(get_battery_voltage()));
     Serial.println("--------------------------");
@@ -49,7 +49,12 @@ void update_display(){
  }
 
  void show_menu(){
-  if(DEBUG) Serial.println("----- Display Menu ------");
+  if(menu_open){
+    if(DEBUG) Serial.println("---- Switching mode -----");
+  }else{
+    menu_open = true;
+    if(DEBUG) Serial.println("----- Display Menu ------");
+  }
  }
 
 /*

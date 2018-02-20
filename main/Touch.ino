@@ -63,11 +63,6 @@ void tp_set_thresholds(void){
  */
 void tp_read_task(void *pvParameter){
   
-  //call when touch waked up ESP32
-  if(was_waked_up_by_touch()){
-    touch_button_pressed(get_wakeup_toch(), true);
-  }
-  
   while (true) {
     for (touch_pad_t current_touch : TOUCH_BUTTONS){
       if (s_pad_activated[current_touch] >= TOUCH_TIME * DECAYING_FAKTOR) {
@@ -122,7 +117,7 @@ void tp_touch_pad_init(){
 void setup_touch(){
 
   // Initialize touch pad peripheral, it will start a timer to run a filter
-  if (DEBUG) Serial.println("Initializing touch pad");
+  if (DEBUG) Serial.println("Init touch pad");
   
   touch_pad_init();
 
@@ -151,5 +146,12 @@ void setup_touch(){
 
   //enable interrupts
   touch_pad_intr_enable();  //touch_pad_intr_disable()
+
+  //call when touch waked up ESP32
+  //must be called befor going to sleep again
+  if(was_waked_up_by_touch()){
+    touch_button_pressed(get_wakeup_toch(), true);
+  }
+  
 
 }

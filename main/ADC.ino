@@ -10,7 +10,7 @@
 //#define ADC_ATTENUATION ADC_ATTEN_11db
 
 
-double get_battery_voltage(){
+float get_battery_voltage(){
   int reading = adc1_get_raw(BATTERY_VOLTAGE_ANALOG_IN);
   //Serial.println(reading);
   if(reading < 1 || reading >= 4095) return -1;
@@ -18,6 +18,9 @@ double get_battery_voltage(){
   return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
 } 
 
+float get_temperature_from_channel(adc1_channel_t current_channel){
+  return adc1_get_raw(current_channel) / 100; //dummy
+}
 
 void setup_adc(){
   adc1_config_width(ADC_WIDTH_12Bit);
