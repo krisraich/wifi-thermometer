@@ -51,7 +51,6 @@ void webserver_ap_task(void *pvParameter) {
   do{
      WiFi.softAPConfig(Ip, Ip, NMask);
      myIP = WiFi.softAPIP();
-     Serial.println(myIP);
      if(myIP == Ip) break;
      vTaskDelay(1 / portTICK_PERIOD_MS);
   }while(true);

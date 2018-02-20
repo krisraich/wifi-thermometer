@@ -40,8 +40,7 @@
       4.B Program active: do nothing
 
    Bugs:
-    1. Sometimes AP starts with IP: 192.168.1.4 instead of 192.168.1.1
-    2. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
+    1. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
 */
 
 /////////////////
