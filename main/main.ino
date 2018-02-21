@@ -48,6 +48,10 @@
 /////////////////
 
 #define DEBUG true
+
+#define IGNORE_BATTERY_VOLTAGE  //delete for production
+
+
 #define SLEEP_DURATION_SEC  30            /* Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history*/
 #define TEMPERATUR_HISTORY_SAMPLE_RATIO  2 /* SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)  */
 
@@ -55,7 +59,6 @@
 //#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot PW, Comment for open AP
 
 #define SHOW_MENU_ON_DISPLAY_TIME  7      /* Wie lange soll das Menü auf dem Display angezeigt werden  */
-
 
 #define MINIMUM_BATTERY_VOLTAGE 2.8       /*Abschalt Spannung. für Lithium-Ionen-Akku. Tiefentladung bei 2.5V.
                                             Minimale Betriebsspannung ESP32 2.3V + 0.1V Dropout vom Regler = 2.4V 
@@ -201,7 +204,6 @@ void refresh_display(void *pvParameter) {
   while(true){
 
     check_battery_life();
-
     
     //only refresh when user hasn't refreshed it
     if(!menu_open && ((millis() - last_refresh) > (SLEEP_DURATION_SEC * mS_TO_S_FACTOR))){
@@ -292,11 +294,13 @@ void setup() {
 }
 
 void check_battery_life(){
-  if(get_battery_voltage() <= MINIMUM_BATTERY_VOLTAGE){
-    if (DEBUG) Serial.print("Battery is empty... shutting down");
-    show_empty_battery();
-    shutdown_esp();
-  }
+  #if ! defined(IGNORE_BATTERY_VOLTAGE)
+    if(get_battery_voltage() <= MINIMUM_BATTERY_VOLTAGE){
+      if (DEBUG) Serial.println("Battery is empty... shutting down");
+      show_empty_battery();
+      shutdown_esp();
+    }
+  #endif
 }
 
 void start_wifi_mode(){
@@ -314,7 +318,6 @@ void start_power_saveing_mode() {
 void default_procedure_on_error(){
   if(DEBUG) Serial.println("Default procedure startet.. rebooting into POWER_SAVING");
   save_operation_mode(POWER_SAVING);
-  //delay(1000);
   ESP.restart();
 }
 
