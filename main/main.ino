@@ -77,7 +77,7 @@
 #define TOUCH_TIME 3 //time in measuring cycles. 1 Cylce 35ms
 #define MODE_TOUCH_BUTTON TOUCH_PAD_NUM3 //GPIO 15 See: https://github.com/espressif/arduino-esp32/blob/master/tools/sdk/include/driver/driver/touch_pad.h
 #define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // GPIO 13 Button für refresh
-#define TOUTCH_THRESHOLD 0.4 // more = more sensitive. Max = 0.99, Min = 0.01
+#define TOUTCH_THRESHOLD 0.6 // more = more sensitive. Max = 0.99, Min = 0.01
 
 //Pin für LoLin / waveshare 2.9
 #define DISPLAY_BUSY GPIO_NUM_17 // Display BUSY = any GPIO
@@ -89,8 +89,8 @@
 #define DISABLE_DIAGNOSTIC_OUTPUT     /* Disables Output of Display class*/
 
 //thermal control / regulation
-#define CHANNEL_1 GPIO_NUM_13   //Pin out for relais 1
-#define CHANNEL_2 GPIO_NUM_15   //Pin out for relais 2
+#define CHANNEL_1 GPIO_NUM_14   //Pin out for relais 1
+#define CHANNEL_2 GPIO_NUM_27   //Pin out for relais 2
 
 #define HYSTERESIS_REGULATION_WIDTH 2.0 // Breite der Hysterese
 #define REGULATION_TIME_INTERVALL 60 //1 minute
@@ -108,6 +108,7 @@
 #define REFRESH_TASK_PRIORITY 10
 #define AUTO_CLOSE_TASK_PRIORITY 5
 
+#define FREE_RTOS_STACK_SIZE 4096
 //#define INCLUDE_vTaskDelete 1
 
 /////////////////
@@ -321,7 +322,7 @@ void check_battery_life(){
 void start_wifi_mode(){
   setup_webserver();
   setup_regulation();
-  xTaskCreate(&refresh_display, "refresh_display", 2048, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
+  xTaskCreate(&refresh_display, "refresh_display", FREE_RTOS_STACK_SIZE, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
 }
 
 void start_power_saveing_mode() {
@@ -357,7 +358,7 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
       menu_open = true;
       menu_open_since = millis();
       if(menu_close_handle == NULL){
-        xTaskCreate(&auto_close_menu, "auto_close_menu", 2048, NULL, AUTO_CLOSE_TASK_PRIORITY, &menu_close_handle);
+        xTaskCreate(&auto_close_menu, "auto_close_menu", FREE_RTOS_STACK_SIZE, NULL, AUTO_CLOSE_TASK_PRIORITY, &menu_close_handle);
       }
     }
     show_menu(selected_operation_mode);

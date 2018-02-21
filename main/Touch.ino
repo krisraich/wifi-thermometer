@@ -142,7 +142,7 @@ void setup_touch(){
   touch_pad_isr_register(tp_rtc_intr, NULL);
 
   // Start a task to show what pads have been touched
-  xTaskCreate(&tp_read_task, "touch_pad_read_task", 2048, NULL, TOUCH_READ_TASK_PRIORITY, &touch_handle);
+  xTaskCreate(&tp_read_task, "touch_pad_read_task", FREE_RTOS_STACK_SIZE, NULL, TOUCH_READ_TASK_PRIORITY, &touch_handle);
 
   //enable interrupts
   touch_pad_intr_enable();  //touch_pad_intr_disable()

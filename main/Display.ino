@@ -83,6 +83,7 @@ void update_display(){
     
     display.setCursor(x+30, y+lineheight+15); // <-- x --> , y^
     display.print(String(get_temperature_from_channel(current_channel)));
+    i++;
   }
     
   getBoxCords(6, x, y);

@@ -134,6 +134,6 @@ void webserver_ap_task(void *pvParameter) {
 
 
 void setup_webserver() {
-  xTaskCreate(&webserver_ap_task, "webserver_ap_task", 4096, NULL, WEBSERVER_TASK_PRIORITY, &webserver_handle);
+  xTaskCreate(&webserver_ap_task, "webserver_ap_task", FREE_RTOS_STACK_SIZE, NULL, WEBSERVER_TASK_PRIORITY, &webserver_handle);
 }
 
