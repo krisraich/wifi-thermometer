@@ -21,9 +21,9 @@ void sending_html(WiFiClient &client){
       client.println("</strong></p>");
     }
 
-    client.println("<p>Battery Voltage is: <strong>");
-    client.println(get_battery_voltage());
-    client.println("V</strong></p>");
+    client.println("<p>Battery: <strong>");
+    client.println(get_battery_percente());
+    client.println("%</strong></p>");
   
     client.println(HTML_FOOTER);
 }

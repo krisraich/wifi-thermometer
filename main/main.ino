@@ -20,7 +20,7 @@
 
   USED REPOSITORIES: 
     E-Paper: https://github.com/ZinggJM/GxEPD
-    Via Librarie manager: Adafruit GFX
+    Via Librarie manager: Adafruit GFX, AutoPID
 
 
   Program behaviour:
@@ -41,6 +41,9 @@
 
    Bugs:
     1. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
+    2. sometimes a timeout (Busy) occurs with FreeRTOS. tune priorities!
+    3. Test PID regulation
+    4. write propper documentation
 */
 
 /////////////////
@@ -50,13 +53,13 @@
 #define DEBUG true
 
 
-#define SLEEP_DURATION_SEC  30            /* Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history*/
+#define SLEEP_DURATION_SEC  30             /* Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history*/
 #define TEMPERATUR_HISTORY_SAMPLE_RATIO  2 /* SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)  */
 
-#define WIFI_AP_SSID "ESP32"              //Hotspot ID
-//#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot PW, Comment for open AP
+#define WIFI_AP_SSID "ESP32"              //Hotspot Wlan SSID
+//#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot Wlan Passwort, Auskommentieren für offenen Hotspot
 
-#define SHOW_MENU_ON_DISPLAY_TIME  7      /* Wie lange soll das Menü auf dem Display angezeigt werden  */
+#define SHOW_MENU_ON_DISPLAY_TIME  7      /* Wie lange soll das Menü auf dem Display angezeigt werden (sec)  */
 
 //onboard button for Wroom Dev Board
 #define ON_BOARD_BUTTON 0
@@ -70,7 +73,7 @@
 #define TOUCH_TIME 3 //time in measuring cycles. 1 Cylce 35ms
 #define MODE_TOUCH_BUTTON TOUCH_PAD_NUM3 //GPIO 15 See: https://github.com/espressif/arduino-esp32/blob/master/tools/sdk/include/driver/driver/touch_pad.h
 #define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // GPIO 13 Button für refresh
-#define TOUTCH_THRESHOLD 0.6 // more = more sensitive. Max = 0.99, Min = 0.01
+#define TOUTCH_THRESHOLD 0.6 // greater value = more sensitive. Max = 0.99, Min = 0.01
 
 //Pin für LoLin / waveshare 2.9
 #define DISPLAY_BUSY GPIO_NUM_17 // Display BUSY = any GPIO
@@ -84,29 +87,30 @@
 //thermal control / regulation
 #define CHANNEL_1 GPIO_NUM_14   //Pin out for relais 1
 #define CHANNEL_2 GPIO_NUM_27   //Pin out for relais 2
+#define RELAY_PULS_WIDTH 30 * mS_TO_S_FACTOR //10 sec?
+#define REGULATION_CYCLE_TIME mS_TO_S_FACTOR //1 sec?
 
-#define HYSTERESIS_REGULATION_WIDTH 2.0 // Breite der Hysterese
-#define REGULATION_TIME_INTERVALL 60 //1 minute
-
-// ADCs
+// Battery stuff
+#define IGNORE_BATTERY_VOLTAGE  //delete for production
 #define BATTERY_VOLTAGE_ANALOG_IN  ADC1_CHANNEL_0 //PIN VP
-//#define IGNORE_BATTERY_VOLTAGE  //delete for production
 #define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1  22000
 #define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2  BATTERY_VOLTAGE_DEVIDING_RESISTOR_1 /* verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN */
-
 #define MINIMUM_BATTERY_VOLTAGE 2.8       /*Abschalt Spannung. für Lithium-Ionen-Akku. Tiefentladung bei 2,5V. Minimale Betriebsspannung ESP32 2,3V + 0,1V Dropout vom Regler = 2,4V . Bei 2,8V sollt genügend restkapazität vorhanden sein */
-#define MAX_BATTERY_VOLTAGE 4.2
+#define MAX_BATTERY_VOLTAGE 4.2           //Maximale LiIon Zellenspannung
 
+
+//times and numbers
 #define uS_TO_S_FACTOR 1000000     /* Conversion factor for micro seconds to seconds */
 #define mS_TO_S_FACTOR 1000        /* Conversion factor for milli seconds to seconds */
 
 #define MIN_TIME_BETWEEN_REFRESH  1000 /* zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann */
 #define CLOSE_MENU_AFTER_TIME 6        /* Menü schließt automatisch nach x sekunden */
 
-#define TOUCH_READ_TASK_PRIORITY 40 /* prioritäten direkt proportional, user inputs haben die größte prio.. */
-#define WEBSERVER_TASK_PRIORITY 35 
-#define REFRESH_TASK_PRIORITY 20
-#define AUTO_CLOSE_TASK_PRIORITY 10
+#define TOUCH_READ_TASK_PRIORITY 25 /* prioritäten direkt proportional, webserver braucht die meisten resourcen */
+#define WEBSERVER_TASK_PRIORITY 45 
+#define REFRESH_TASK_PRIORITY 15
+#define REGULATION_TASK_PRIORITY 10
+#define AUTO_CLOSE_TASK_PRIORITY 5
 
 #define FREE_RTOS_STACK_SIZE 4096
 //#define INCLUDE_vTaskDelete 1
@@ -138,15 +142,18 @@
 #include <Fonts/FreeMonoBold24pt7b.h>
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
-#include "logo_mono.h"
-#include "icons.h"
+#include "res/logo_mono.h"
+#include "res/icons.h"
 
 //webserver
-#include "logo_favicon.h"
 #include <WiFi.h>
+#include "res/logo_favicon.h"
 
 //EEPROM
 #include "EEPROM.h"
+
+//regulation
+#include <AutoPID.h>
 
 //handy functions
 #define min(a,b) ((a)<(b)?(a):(b));
@@ -202,6 +209,7 @@ OPERATION_MODE selected_operation_mode;
 
 TaskHandle_t webserver_handle = NULL;
 TaskHandle_t touch_handle = NULL;
+TaskHandle_t regulation_handle = NULL;
 TaskHandle_t refresh_handle = NULL;
 TaskHandle_t menu_close_handle = NULL;
 
