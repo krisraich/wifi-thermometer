@@ -40,8 +40,7 @@
       4.B Program active: do nothing
 
    Bugs:
-    1. Touch input when display is active in wifi mode
-    2. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
+    1. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
 */
 
 /////////////////

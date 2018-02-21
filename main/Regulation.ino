@@ -2,7 +2,7 @@
  * Temperture regulation
  */
 
- void setup_regulation(){
+void setup_regulation(){
   if (DEBUG) Serial.println("Init Regulation"); 
 
   pinMode(CHANNEL_1, OUTPUT);
@@ -10,4 +10,6 @@
 
   digitalWrite(CHANNEL_1, LOW);
   digitalWrite(CHANNEL_2, LOW);
+  
 }
+
