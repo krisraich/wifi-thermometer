@@ -55,8 +55,9 @@ void calibrate_adcs(){
       delay(10); // wait for serial port to connect. Needed for native USB port only
     }
   }
-  
 
+  //set powersave mode (failsafe)
+  save_operation_mode(POWER_SAVING);
   
   Serial.println("Now in calibration mode!");
   set_blink_frequency(FAST);

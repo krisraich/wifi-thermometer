@@ -77,7 +77,7 @@
 #define TOUCH_TIME 3 //time in measuring cycles. 1 Cylce 35ms
 #define MODE_TOUCH_BUTTON TOUCH_PAD_NUM3 //GPIO 15 See: https://github.com/espressif/arduino-esp32/blob/master/tools/sdk/include/driver/driver/touch_pad.h
 #define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // GPIO 13 Button für refresh
-#define TOUTCH_THRESHOLD 0.7 // more = less sensitive. Max = 0.99, Min = 0.01
+#define TOUTCH_THRESHOLD 0.4 // more = more sensitive. Max = 0.99, Min = 0.01
 
 //Pin für LoLin / waveshare 2.9
 #define DISPLAY_BUSY GPIO_NUM_17 // Display BUSY = any GPIO
