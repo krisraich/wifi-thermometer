@@ -247,8 +247,8 @@ void auto_close_menu(void *pvParameter){
       if(DEBUG) Serial.println("Auto closing menu");
       menu_open = false;
       update_display();
-      if(current_operation_mode == POWER_SAVING){
-        start_power_saveing_mode();
+      if(current_operation_mode == POWER_SAVING || current_operation_mode == BT_LE_SLAVE){
+        start_power_saving_mode();
       }
     }
     vTaskDelay(SHOW_MENU_ON_DISPLAY_TIME * 50 / portTICK_PERIOD_MS); //50 for no haste...
@@ -298,17 +298,16 @@ void setup() {
   if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
  
   switch (current_operation_mode) {
-    //fall back into POWER_SAVING
-    case BT_LE_SLAVE:
-      if (DEBUG) Serial.print("Not implemented yet! Starting Power safe mode");
     default:
       //set default
+      if (DEBUG) Serial.println("Falling back to POWER_SAVE mode");
       save_operation_mode(POWER_SAVING);
+    case BT_LE_SLAVE:
     case POWER_SAVING:
       if(!menu_open){
         //after ini, show temps. except when menu is open
         update_display();
-        start_power_saveing_mode();
+        start_power_saving_mode();
       }
       return;
     case WIFI_SERVER:
@@ -333,7 +332,19 @@ void start_wifi_mode(){
   xTaskCreate(&refresh_display, "refresh_display", FREE_RTOS_STACK_SIZE, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
 }
 
-void start_power_saveing_mode() {
+void start_power_saving_mode() {
+
+  if(current_operation_mode == BT_LE_SLAVE){
+    //search for wifi devices and send data via BLE
+    if(DEBUG){
+      Serial.println("Searching Devices in WiFi Mode");
+      setup_bluetooth();
+      delay(200);
+      Serial.println("Sending Data via Bluetooth Low Energy (BLE)");
+    }
+    
+  }
+  
   deep_sleep_wake_up_after_time(SLEEP_DURATION_SEC);
   deep_sleep_wake_up_on_touch();
   led_stop_blinking();
@@ -386,9 +397,35 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
           save_operation_mode(POWER_SAVING);
           switch(current_operation_mode){
             
+            //going from BT_LE_SLAVE to POWER_SAVING
+            case BT_LE_SLAVE:
             //going from POWER_SAVING to POWER_SAVING
             case POWER_SAVING:
-              start_power_saveing_mode(); //menu is closed.. now go to sleep
+              current_operation_mode = POWER_SAVING;
+              start_power_saving_mode(); //menu is closed.. now go to sleep
+              break;
+              
+            //going from WIFI_SERVER to POWER_SAVING
+            case WIFI_SERVER:
+              ESP.restart(); //needs restart to turn off wifi
+              break;
+              
+            //default: mode has been saved and it should load next boot
+            default: ESP.restart();
+          }
+          break;
+
+        //only when mode was active and user waked up esp
+        case BT_LE_SLAVE:
+          save_operation_mode(BT_LE_SLAVE);
+          switch(current_operation_mode){
+            
+            //going from BT_LE_SLAVE to BT_LE_SLAVE
+            case BT_LE_SLAVE:
+            //going from POWER_SAVING to BT_LE_SLAVE
+            case POWER_SAVING:
+              current_operation_mode = BT_LE_SLAVE;
+              start_power_saving_mode(); //menu is closed.. now go to sleep
               break;
               
             //going from WIFI_SERVER to POWER_SAVING
@@ -405,6 +442,8 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
           save_operation_mode(WIFI_SERVER);
           switch(current_operation_mode){
             
+            //going from BT_LE_SLAVE to WIFI_SERVER
+            case BT_LE_SLAVE:
             //going from POWER_SAVING to WIFI_SERVER
             case POWER_SAVING:
               current_operation_mode = WIFI_SERVER;

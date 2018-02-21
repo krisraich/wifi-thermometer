@@ -37,9 +37,10 @@ static int count_adc_channels(){
 static OPERATION_MODE cycle_through_modes(OPERATION_MODE operation_mode){
    switch (operation_mode){
     case POWER_SAVING: return WIFI_SERVER;
-    case WIFI_SERVER:  return SHUTDOWN;
+    case WIFI_SERVER:  return BT_LE_SLAVE;
+    case BT_LE_SLAVE:  return SHUTDOWN;
+    default:
     case SHUTDOWN:     return POWER_SAVING;
-    default:           return POWER_SAVING;
   }
 }
 

@@ -16,23 +16,15 @@
 #define KD 0
 
 
-int WindowSize = 5000;
-unsigned long windowStartTime;
-
 //Define Variables we'll be connecting to
 double setpoint_1, input_1, setpoint_2, input_2;
-
 bool relay_state1 = false, relay_state2 = false;
 
+//current input channels
 adc1_channel_t *channel_1, *channel_2;
 
-
-//AutoPIDRelay(double *input, double *setpoint, bool *relayState, double pulseWidth, double Kp, double Ki, double Kd)
-
-//Specify the links and initial tuning parameters
 AutoPIDRelay pid_1(&input_1, &setpoint_1, &relay_state1, RELAY_PULS_WIDTH, KP, KI, KD);
 AutoPIDRelay pid_2(&input_2, &setpoint_2, &relay_state2, RELAY_PULS_WIDTH, KP, KI, KD);
-
 
 void regulation_task(void *pvParameter) {
   while(true){
