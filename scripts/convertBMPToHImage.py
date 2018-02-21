@@ -16,7 +16,7 @@ if os.path.isfile(filename):
 	outByte = 0
 	output = "const unsigned char " + filename[:-4] + "[" + str(int(len(im.getdata()) / 8)) + "] PROGMEM = " + "{"
 	for px in im.getdata():
-		if px > 128:
+		if px > 0:
 			outByte = outByte + 1
 		bitCounter = bitCounter + 1
 		if(bitCounter >= 8):
