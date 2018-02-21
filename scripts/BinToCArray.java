@@ -13,6 +13,7 @@ import static java.nio.file.StandardOpenOption.*;
 public class BinToCArray {
 
     public static final int LINE_BREAK_AFTER = 16;
+    public static final String HEX_FORMAT = "0x%02X,";
     
     public static void main(String[] args) throws IOException {
         
@@ -28,15 +29,17 @@ public class BinToCArray {
         
         StringBuilder sb = new StringBuilder();
         sb.append("/*\n");
-        sb.append(" *   " + input.getFileName() + "\n");
+        sb.append(" *   ");
+        sb.append(input.getFileName());
+        sb.append("\n");
         sb.append(" */\n");
+        sb.append("const uint8_t bin_image[");
+        sb.append(binary.length);
+        sb.append("] PROGMEM = { \n");
 
-        sb.append("const uint8_t bin_image[" + binary.length + "] PROGMEM = { \n");
-
-        
         int currentHex = 0;
         for (byte b : binary) {
-            sb.append(String.format("0x%02X,", b));
+            sb.append(String.format(HEX_FORMAT, b));
             if(++currentHex % LINE_BREAK_AFTER == 0){
                  sb.append("\n");
             }
