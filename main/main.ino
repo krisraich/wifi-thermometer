@@ -103,8 +103,8 @@
 #define MIN_TIME_BETWEEN_REFRESH  1000 //zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann
 #define CLOSE_MENU_AFTER_TIME 6        /* Menü schließt automatisch nach x sekunden */
 
-#define TOUCH_READ_TASK_PRIORITY 40 //prioritäten direkt proportional, user inputs haben die größte prio..
-#define WEBSERVER_TASK_PRIORITY 35 
+#define TOUCH_READ_TASK_PRIORITY 35 //prioritäten direkt proportional, user inputs haben die größte prio..
+#define WEBSERVER_TASK_PRIORITY 20 
 #define REFRESH_TASK_PRIORITY 10
 #define AUTO_CLOSE_TASK_PRIORITY 5
 
