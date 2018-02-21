@@ -45,8 +45,44 @@ void update_display(){
     Serial.println("Battery Vlotage is: " + String(get_battery_voltage()));
     Serial.println("--------------------------");
   }
-  //simulate time...
-  display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
+
+    display.fillScreen(GxEPD_WHITE);
+
+  int boxHeight = display.height() / 2;
+  int boxWidth = display.width() / 3;
+  int borderWidth = 1;
+
+
+  display.drawLine(boxWidth,0,boxWidth,display.height(),GxEPD_BLACK);
+  display.drawLine(boxWidth*2,0,boxWidth*2,display.height(),GxEPD_BLACK);
+  display.drawLine(0,boxHeight,display.width(),boxHeight,GxEPD_BLACK);
+  
+  display.setTextColor(GxEPD_BLACK);
+  display.setFont(&FreeMonoBold9pt7b);
+  
+  int lineheight = 13;
+  int x;
+  int y;
+  for(int i = 1; i<6; i++){
+    getBoxCords(i, x, y);
+    display.setCursor(x+2, y+lineheight); // <-- x --> , y^
+    display.print("Temp-" + String(i));
+    display.drawBitmap(x+4, y+lineheight+20, gridicons_offline, 24, 24, GxEPD_BLACK);
+    
+    display.setCursor(x+30, y+lineheight+15); // <-- x --> , y^
+    display.print("78°");
+  }
+    
+  getBoxCords(6, x, y);
+  display.setCursor(x+2, y+lineheight); // <-- x --> , y^
+  display.print("Bat: " + get_battery_voltage() + "V");
+  display.setCursor(x+2, y+lineheight*2); // <-- x --> , y^
+  display.print("Con: |||..");
+  display.setCursor(x+2, y+lineheight*3); // <-- x --> , y^
+  display.print("Lootboyz!");
+  
+  display.update();
+
   last_refresh = millis();
 }
 
@@ -65,6 +101,7 @@ void show_shutdown(){
   //simulate time...
   display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
 }
+
 
 void show_empty_battery(){
   Serial.println("----- Battery empty ------");
