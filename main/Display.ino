@@ -46,7 +46,8 @@ void update_display(){
     Serial.println("--------------------------");
   }
 
-    display.fillScreen(GxEPD_WHITE);
+/*
+   display.fillScreen(GxEPD_WHITE);
 
   int boxHeight = display.height() / 2;
   int boxWidth = display.width() / 3;
@@ -80,6 +81,7 @@ void update_display(){
   display.print("Con: |||..");
   display.setCursor(x+2, y+lineheight*3); // <-- x --> , y^
   display.print("Lootboyz!");
+  */
   
   display.update();
 

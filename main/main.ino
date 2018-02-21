@@ -78,13 +78,20 @@
 #define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // GPIO 13 Button für refresh
 
 //Pin für LoLin / waveshare 2.9
-#define DISPLAY_BUSY 17 // Display BUSY = any GPIO
-#define DISPLAY_RST 16 //Display RESET = any GPIO
-#define DISPLAY_DC 4 //DATA/COMMAND = any GPIO
+#define DISPLAY_BUSY GPIO_NUM_17 // Display BUSY = any GPIO
+#define DISPLAY_RST GPIO_NUM_16 //Display RESET = any GPIO
+#define DISPLAY_DC GPIO_NUM_4 //DATA/COMMAND = any GPIO
 #define DISPLAY_CS SS //SPI CHIP SELECT = PIN 5
 #define DISPLAY_CLK SCK //SPI CLOCK = Pin 18
 #define DISPLAY_DIN MOSI //SPI MOSI (master out slave in) = PIN 23
 #define DISABLE_DIAGNOSTIC_OUTPUT     /* Disables Output of Display class*/
+
+//thermal control / regulation
+#define CHANNEL_1 GPIO_NUM_13   //Pin out for relais 1
+#define CHANNEL_2 GPIO_NUM_15   //Pin out for relais 2
+
+#define HYSTERESIS_REGULATION_WIDTH 2.0 // Breite der Hysterese
+#define REGULATION_TIME_INTERVALL 60 //1 minute
 
 #define BATTERY_VOLTAGE_ANALOG_IN  ADC1_CHANNEL_0 //PIN VP
 
@@ -162,6 +169,11 @@ const adc1_channel_t ADC_CHANNELS[] {
 const touch_pad_t TOUCH_BUTTONS[] {
   static_cast<touch_pad_t>(OK_TOUCH_BUTTON),
   static_cast<touch_pad_t>(MODE_TOUCH_BUTTON),
+};
+
+const gpio_num_t TEMP_CONTROL_PINS[]{
+  CHANNEL_1,
+  CHANNEL_2
 };
 
 enum OPERATION_MODE {
@@ -305,6 +317,7 @@ void check_battery_life(){
 
 void start_wifi_mode(){
   setup_webserver();
+  setup_regulation();
   xTaskCreate(&refresh_display, "refresh_display", 2048, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
 }
 
