@@ -31,7 +31,7 @@ void sending_html(WiFiClient &client){
 void sending_favicon(WiFiClient &client){
   client.println("Content-Type: image/x-icon");
   client.println();
-  for(const uint8_t &current_byte : logo_favicon){
+  for(const uint8_t &current_byte : bin_favicon){
     client.write(current_byte);
   }
 }

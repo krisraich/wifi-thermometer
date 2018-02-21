@@ -142,12 +142,13 @@
 #include <Fonts/FreeMonoBold24pt7b.h>
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
-#include "res/logo_mono.h"
-#include "res/icons.h"
+#include "res/img_logo.h"
+#include "res/img_icons.h"
+#include "res/img_battery_low.h"
 
 //webserver
 #include <WiFi.h>
-#include "res/logo_favicon.h"
+#include "res/bin_favicon.h"
 
 //EEPROM
 #include "EEPROM.h"
