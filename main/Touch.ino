@@ -38,7 +38,7 @@ void tp_set_thresholds(void){
     //if (DEBUG) Serial.println("touch value: " + String(touch_value));
     
     //set interrupt threshold.
-    ESP_ERROR_CHECK(touch_pad_set_thresh(current_touch, touch_value * 2 / 3));
+    ESP_ERROR_CHECK(touch_pad_set_thresh(current_touch, touch_value * TOUTCH_THRESHOLD));
   }
 }
 

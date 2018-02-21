@@ -18,7 +18,7 @@
   Dev Notes:
     Dev Board: Pin6 digital out = Error
 
-  USED REPOSITORIES:
+  USED REPOSITORIES: 
     E-Paper: https://github.com/ZinggJM/GxEPD
     Via Librarie manager: Adafruit GFX
 
@@ -40,7 +40,8 @@
       4.B Program active: do nothing
 
    Bugs:
-    1. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
+    1. Touch input when display is active in wifi mode
+    2. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
 */
 
 /////////////////
@@ -76,6 +77,7 @@
 #define TOUCH_TIME 3 //time in measuring cycles. 1 Cylce 35ms
 #define MODE_TOUCH_BUTTON TOUCH_PAD_NUM3 //GPIO 15 See: https://github.com/espressif/arduino-esp32/blob/master/tools/sdk/include/driver/driver/touch_pad.h
 #define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // GPIO 13 Button für refresh
+#define TOUTCH_THRESHOLD 0.7 // more = less sensitive. Max = 0.99, Min = 0.01
 
 //Pin für LoLin / waveshare 2.9
 #define DISPLAY_BUSY GPIO_NUM_17 // Display BUSY = any GPIO
@@ -102,7 +104,7 @@
 #define CLOSE_MENU_AFTER_TIME 6        /* Menü schließt automatisch nach x sekunden */
 
 #define TOUCH_READ_TASK_PRIORITY 40 //prioritäten direkt proportional, user inputs haben die größte prio..
-#define WEBSERVER_TASK_PRIORITY 15 
+#define WEBSERVER_TASK_PRIORITY 35 
 #define REFRESH_TASK_PRIORITY 10
 #define AUTO_CLOSE_TASK_PRIORITY 5
 
@@ -136,6 +138,7 @@
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
 #include "logo_mono.h"
+#include "icons.h"
 
 //webserver
 #include "logo_favicon.h"

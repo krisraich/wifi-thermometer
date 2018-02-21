@@ -5,9 +5,8 @@
  * https://github.com/ZinggJM/GxEPD/blob/master/examples/GxEPD_SPI_TestExample/GxEPD_SPI_TestExample.ino
  * https://github.com/adafruit/Adafruit-GFX-Library/tree/master/Fonts
  * 
- * display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y * /);
+ * display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y * /); 
  */
-
 
 void drawCornerTest()
 {
@@ -35,6 +34,18 @@ void setup_display(){
   display.setRotation(3); //font orientation
 }
 
+void getBoxCords(int cellNr, int &x, int &y){
+  int boxHeight = display.height() / 2;
+  int boxWidth = display.width() / 3;
+  if(cellNr > 3){
+    y = boxHeight;
+    x = (cellNr - 4) * boxWidth;
+  }else{
+    y = 0;
+    x = (cellNr - 1) * boxWidth;
+  }
+  
+}
 
 void update_display(){
   if(DEBUG){
@@ -46,8 +57,7 @@ void update_display(){
     Serial.println("--------------------------");
   }
 
-/*
-   display.fillScreen(GxEPD_WHITE);
+  display.fillScreen(GxEPD_WHITE);
 
   int boxHeight = display.height() / 2;
   int boxWidth = display.width() / 3;
@@ -64,24 +74,24 @@ void update_display(){
   int lineheight = 13;
   int x;
   int y;
-  for(int i = 1; i<6; i++){
+  int i = 1;
+  for (adc1_channel_t current_channel : ADC_CHANNELS){
     getBoxCords(i, x, y);
     display.setCursor(x+2, y+lineheight); // <-- x --> , y^
-    display.print("Temp-" + String(i));
-    display.drawBitmap(x+4, y+lineheight+20, gridicons_offline, 24, 24, GxEPD_BLACK);
+    display.print("Temp-" + String(current_channel));
+    display.drawBitmap(x+4, y+lineheight+20, icon_temperatur, 24, 24, GxEPD_BLACK);
     
     display.setCursor(x+30, y+lineheight+15); // <-- x --> , y^
-    display.print("78°");
+    display.print(String(get_temperature_from_channel(current_channel)));
   }
     
   getBoxCords(6, x, y);
   display.setCursor(x+2, y+lineheight); // <-- x --> , y^
-  display.print("Bat: " + get_battery_voltage() + "V");
+  display.print("Bat: " + String(get_battery_voltage()) + "V");
   display.setCursor(x+2, y+lineheight*2); // <-- x --> , y^
   display.print("Con: |||..");
   display.setCursor(x+2, y+lineheight*3); // <-- x --> , y^
   display.print("Lootboyz!");
-  */
   
   display.update();
 
@@ -90,26 +100,27 @@ void update_display(){
 
 void show_menu(OPERATION_MODE operation_mode){
   if(DEBUG) Serial.println("---- Showing Mode: " + String(operation_mode_to_string(operation_mode))+ " -----");
-  
+
+  print_big_text(operation_mode_to_string(operation_mode), &FreeMonoBold18pt7b);
   //simulate time...
-  display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
+  //display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
   
   last_refresh = millis();
 }
 
 void show_shutdown(){
   Serial.println("----- Shut down ------");
-  
+  print_big_text("Shut down empty", &FreeMonoBold18pt7b);
   //simulate time...
-  display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
+  //display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
 }
 
 
 void show_empty_battery(){
   Serial.println("----- Battery empty ------");
-  
+  print_big_text("Bat empty", &FreeMonoBold18pt7b);
   //simulate time...
-  display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
+  //display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
 }
 
 
