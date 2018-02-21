@@ -44,6 +44,8 @@
     2. sometimes a timeout (Busy) occurs with FreeRTOS. tune priorities!
     3. Test PID regulation
     4. write propper documentation
+    5. Test new images
+    6. Test BLE Mode
 */
 
 /////////////////
