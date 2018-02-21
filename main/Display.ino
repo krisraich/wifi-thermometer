@@ -76,22 +76,31 @@ void update_display(){
   int y;
   int i = 1;
   for (adc1_channel_t current_channel : ADC_CHANNELS){
+    // selecting outputbox
     getBoxCords(i, x, y);
+    // draw temp. icon
+    display.drawBitmap(x+4, y+lineheight+20, icon_temperatur, 24, 24, GxEPD_BLACK);
+    // Heading
     display.setCursor(x+2, y+lineheight); // <-- x --> , y^
     display.print("Temp-" + String(current_channel));
-    display.drawBitmap(x+4, y+lineheight+20, icon_temperatur, 24, 24, GxEPD_BLACK);
-    
-    display.setCursor(x+30, y+lineheight+15); // <-- x --> , y^
+    // Temperatur
+    display.setCursor(x+30, y+lineheight+30); // <-- x --> , y^
     display.print(String(get_temperature_from_channel(current_channel)));
+    // increment box counter for loop
     i++;
   }
     
   getBoxCords(6, x, y);
   display.setCursor(x+2, y+lineheight); // <-- x --> , y^
-  display.print("Bat: " + String(get_battery_voltage()) + "V");
+  display.print("Bat:" + String(get_battery_voltage(), 1) + "V");
+
   display.setCursor(x+2, y+lineheight*2); // <-- x --> , y^
-  display.print("Con: |||..");
+  display.print("Bat:" + String(get_battery_percente()) + "%");
+  
   display.setCursor(x+2, y+lineheight*3); // <-- x --> , y^
+  display.print("Con:|||..");
+  
+  display.setCursor(x+2, y+lineheight*4); // <-- x --> , y^
   display.print("Lootboyz!");
   
   display.update();

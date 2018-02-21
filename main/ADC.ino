@@ -9,8 +9,11 @@
 
 //#define ADC_ATTENUATION ADC_ATTEN_11db
 
-
 float get_battery_voltage(){
+  return get_adc_raw_voltage() * (BATTERY_VOLTAGE_DEVIDING_RESISTOR_1 + BATTERY_VOLTAGE_DEVIDING_RESISTOR_2) / BATTERY_VOLTAGE_DEVIDING_RESISTOR_2;
+} 
+
+float get_adc_raw_voltage(){
   int reading = adc1_get_raw(BATTERY_VOLTAGE_ANALOG_IN);
   
   if(reading < 1 || reading >= 4095) return -1;
@@ -20,6 +23,10 @@ float get_battery_voltage(){
 
 float get_temperature_from_channel(adc1_channel_t current_channel){
   return adc1_get_raw(current_channel) / 100; //dummy
+}
+
+uint8_t get_battery_percente(){
+  return (get_battery_voltage() - MINIMUM_BATTERY_VOLTAGE) / (MAX_BATTERY_VOLTAGE - MINIMUM_BATTERY_VOLTAGE) * 100;
 }
 
 void setup_adc(){

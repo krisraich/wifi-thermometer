@@ -49,8 +49,6 @@
 
 #define DEBUG true
 
-#define IGNORE_BATTERY_VOLTAGE  //delete for production
-
 
 #define SLEEP_DURATION_SEC  30            /* Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history*/
 #define TEMPERATUR_HISTORY_SAMPLE_RATIO  2 /* SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)  */
@@ -59,10 +57,6 @@
 //#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot PW, Comment for open AP
 
 #define SHOW_MENU_ON_DISPLAY_TIME  7      /* Wie lange soll das Menü auf dem Display angezeigt werden  */
-
-#define MINIMUM_BATTERY_VOLTAGE 2.8       /*Abschalt Spannung. für Lithium-Ionen-Akku. Tiefentladung bei 2.5V.
-                                            Minimale Betriebsspannung ESP32 2.3V + 0.1V Dropout vom Regler = 2.4V 
-                                            Bei 2.8V sollt genügend restkapazität vorhanden sein */
 
 //onboard button for Wroom Dev Board
 #define ON_BOARD_BUTTON 0
@@ -94,18 +88,25 @@
 #define HYSTERESIS_REGULATION_WIDTH 2.0 // Breite der Hysterese
 #define REGULATION_TIME_INTERVALL 60 //1 minute
 
+// ADCs
 #define BATTERY_VOLTAGE_ANALOG_IN  ADC1_CHANNEL_0 //PIN VP
+//#define IGNORE_BATTERY_VOLTAGE  //delete for production
+#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1  22000
+#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2  BATTERY_VOLTAGE_DEVIDING_RESISTOR_1 /* verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN */
+
+#define MINIMUM_BATTERY_VOLTAGE 2.8       /*Abschalt Spannung. für Lithium-Ionen-Akku. Tiefentladung bei 2,5V. Minimale Betriebsspannung ESP32 2,3V + 0,1V Dropout vom Regler = 2,4V . Bei 2,8V sollt genügend restkapazität vorhanden sein */
+#define MAX_BATTERY_VOLTAGE 4.2
 
 #define uS_TO_S_FACTOR 1000000     /* Conversion factor for micro seconds to seconds */
 #define mS_TO_S_FACTOR 1000        /* Conversion factor for milli seconds to seconds */
 
-#define MIN_TIME_BETWEEN_REFRESH  1000 //zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann
+#define MIN_TIME_BETWEEN_REFRESH  1000 /* zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann */
 #define CLOSE_MENU_AFTER_TIME 6        /* Menü schließt automatisch nach x sekunden */
 
-#define TOUCH_READ_TASK_PRIORITY 35 //prioritäten direkt proportional, user inputs haben die größte prio..
-#define WEBSERVER_TASK_PRIORITY 20 
-#define REFRESH_TASK_PRIORITY 10
-#define AUTO_CLOSE_TASK_PRIORITY 5
+#define TOUCH_READ_TASK_PRIORITY 40 /* prioritäten direkt proportional, user inputs haben die größte prio.. */
+#define WEBSERVER_TASK_PRIORITY 35 
+#define REFRESH_TASK_PRIORITY 20
+#define AUTO_CLOSE_TASK_PRIORITY 10
 
 #define FREE_RTOS_STACK_SIZE 4096
 //#define INCLUDE_vTaskDelete 1
@@ -266,14 +267,14 @@ void setup() {
 
   int bootups = setup_deep_sleep();
   setup_adc();
-
-  check_battery_life();
-
+  
   setup_data_store();
 
   setup_recorder();
 
   setup_display();
+  
+  check_battery_life();
 
   //enter only on reset
   if (bootups == 1) {
