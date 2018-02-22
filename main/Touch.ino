@@ -165,5 +165,5 @@ void setup_touch(){
 void stop_touch() {
   if (DEBUG) Serial.println("Disabling Touch");
   touch_is_running = false;
-  while(! touch_has_stopped)delay(10);
+  //while(! touch_has_stopped)delay(10);
 }

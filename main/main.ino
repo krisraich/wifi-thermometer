@@ -374,8 +374,19 @@ void start_power_saving_mode() {
 void default_procedure_on_error(){
   if(DEBUG) Serial.println("Default procedure startet.. rebooting into POWER_SAVING");
   save_operation_mode(POWER_SAVING);
+  prepare_to_shutdown();
   ESP.restart();
 }
+
+
+void prepare_to_shutdown(){
+  if(current_operation_mode == WIFI_SERVER){
+    stop_webserver();
+    stop_regulation();
+  }
+  stop_touch(); 
+}
+
 
 void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
 
@@ -428,9 +439,7 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
               
             //going from WIFI_SERVER to POWER_SAVING
             case WIFI_SERVER:
-              stop_webserver();
-              stop_touch();
-              stop_regulation();
+              prepare_to_shutdown();
               ESP.restart(); //needs restart to turn off wifi
               break;
               
@@ -454,9 +463,7 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
               
             //going from WIFI_SERVER to POWER_SAVING
             case WIFI_SERVER:
-              stop_webserver();
-              stop_touch();
-              stop_regulation();
+              prepare_to_shutdown();
               ESP.restart(); //needs restart to turn off wifi
               break;
               
@@ -494,13 +501,14 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
               break;
               
             //default: mode has been saved and it should load next boot
-            default: ESP.restart();
+            default: default_procedure_on_error();
           }
           break;
 
         case SHUTDOWN:
           //save_operation_mode(POWER_SAVING);
           show_shutdown();
+          prepare_to_shutdown();
           shutdown_esp();
           break;
         

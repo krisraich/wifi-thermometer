@@ -118,7 +118,7 @@ void set_temp_channel2(){
 void stop_regulation() {
   if (DEBUG) Serial.println("Reuglation Touch");
   regultaion_is_running = false;
-  while(! regultaion_has_stopped)delay(10);
+  //while(! regultaion_has_stopped)delay(10);
 }
 
 

@@ -147,6 +147,6 @@ void setup_webserver() {
 void stop_webserver() {
   if (DEBUG) Serial.println("Disabling Webserver/Wifi");
   server_is_running = false;
-  while(! server_has_stopped)delay(10);
+  //while(! server_has_stopped)delay(10);
 }
 
