@@ -59,7 +59,7 @@
 #define WIFI_AP_SSID "ESP32"              //Hotspot Wlan SSID
 //#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot Wlan Passwort, Auskommentieren für offenen Hotspot
 
-#define SHOW_MENU_ON_DISPLAY_TIME  15      /* Wie lange soll das Menü auf dem Display angezeigt werden (sec)  */
+
 
 //onboard button for Wroom Dev Board
 #define ON_BOARD_BUTTON 0
@@ -104,8 +104,8 @@
 #define uS_TO_S_FACTOR 1000000     /* Conversion factor for micro seconds to seconds */
 #define mS_TO_S_FACTOR 1000        /* Conversion factor for milli seconds to seconds */
 
-#define MIN_TIME_BETWEEN_REFRESH  1000 /* zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann */
-#define CLOSE_MENU_AFTER_TIME 6        /* Menü schließt automatisch nach x sekunden */
+#define MIN_TIME_BETWEEN_REFRESH  1000 /* zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann (ms) */
+#define SHOW_MENU_ON_DISPLAY_TIME 15        /* Wie lange soll das Menü auf dem Display angezeigt werden (sec)  */
 
 #define TOUCH_READ_TASK_PRIORITY 25 /* prioritäten direkt proportional, webserver braucht die meisten resourcen */
 #define WEBSERVER_TASK_PRIORITY 45 
@@ -338,6 +338,7 @@ void check_battery_life(){
 }
 
 void start_wifi_mode(){
+  update_display();
   setup_webserver();
   setup_regulation();
   xTaskCreate(&refresh_display, "refresh_display", FREE_RTOS_STACK_SIZE, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
@@ -451,6 +452,17 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
           break;
         
         case WIFI_SERVER:
+
+          //don't switch to wifi mode when battery is weak
+          #if defined(SWITCH_TO_POWERSAVE_WHEN_BAT_LOW)
+              if(get_battery_percente() <= SWITCH_TO_POWERSAVE_WHEN_BAT_LOW){
+                if (DEBUG) Serial.println("Battery is nearly empty.. cant switch to wifi mode");
+                show_empty_battery();
+                vTaskDelay(2000 / portTICK_PERIOD_MS); //show for 2 seconds
+                break;
+              }
+          #endif
+        
           save_operation_mode(WIFI_SERVER);
           switch(current_operation_mode){
             
@@ -481,6 +493,9 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
         //default fallback
         default: default_procedure_on_error();
       }
+      
+      //if nothing todo.. update display
+      update_display();
               
     }else if(millis() - last_refresh > MIN_TIME_BETWEEN_REFRESH){
       if(DEBUG) Serial.println("user refresh temps: ");

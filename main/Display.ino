@@ -53,7 +53,7 @@ void update_display(){
     for (adc1_channel_t current_channel : ADC_CHANNELS){      
       Serial.println("Sensor input No. " + String(current_channel) + " is " + String(get_temperature_from_channel(current_channel)));
     }
-    Serial.println("Battery Vlotage is: " + String(get_battery_voltage()));
+    Serial.println("Battery Voltage is: " + String(get_battery_voltage()));
     Serial.println("--------------------------");
   }
 
