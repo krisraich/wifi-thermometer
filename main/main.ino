@@ -97,6 +97,7 @@
 #define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2  BATTERY_VOLTAGE_DEVIDING_RESISTOR_1 /* verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN */
 #define MINIMUM_BATTERY_VOLTAGE 2.8       /*Abschalt Spannung. für Lithium-Ionen-Akku. Tiefentladung bei 2,5V. Minimale Betriebsspannung ESP32 2,3V + 0,1V Dropout vom Regler = 2,4V . Bei 2,8V sollt genügend restkapazität vorhanden sein */
 #define MAX_BATTERY_VOLTAGE 4.2           //Maximale LiIon Zellenspannung
+#define SWITCH_TO_POWERSAVE_WHEN_BAT_LOW  7 //Schalte unter X prozent Batterie in POWER_SAVE modus. Auskommentieren um zu deaktivieren 
 
 
 //times and numbers
@@ -319,6 +320,15 @@ void setup() {
 
 void check_battery_life(){
   #if ! defined(IGNORE_BATTERY_VOLTAGE)
+
+    #if defined(SWITCH_TO_POWERSAVE_WHEN_BAT_LOW)
+      if(current_operation_mode == WIFI_SERVER && get_battery_percente() <= SWITCH_TO_POWERSAVE_WHEN_BAT_LOW){
+        if (DEBUG) Serial.println("Battery is nearly empty.. switchng to POWER_SAVE");
+        save_operation_mode(POWER_SAVING);
+        ESP.restart();
+      }
+    #endif
+  
     if(get_battery_voltage() <= MINIMUM_BATTERY_VOLTAGE){
       if (DEBUG) Serial.println("Battery is empty... shutting down");
       show_empty_battery();
