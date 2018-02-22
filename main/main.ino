@@ -297,11 +297,13 @@ void setup() {
     calibrate_adcs();
   }
 
+  //must set befor touch
+  current_operation_mode = get_last_operation_mode();
+  selected_operation_mode = get_last_operation_mode(); //using current_operation_mode would copy the reference... 
+
   //also needed for deepsleep
   setup_touch();
 
-  current_operation_mode = get_last_operation_mode();
-  selected_operation_mode = get_last_operation_mode(); //using current_operation_mode would copy the reference... 
   
   if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
  
@@ -361,6 +363,8 @@ void start_power_saving_mode() {
     }
     
   }
+
+  update_display();
   
   deep_sleep_wake_up_after_time(SLEEP_DURATION_SEC);
   deep_sleep_wake_up_on_touch();
@@ -426,6 +430,8 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
             //going from WIFI_SERVER to POWER_SAVING
             case WIFI_SERVER:
               stop_webserver();
+              stop_touch();
+              stop_regulation();
               ESP.restart(); //needs restart to turn off wifi
               break;
               
@@ -450,6 +456,8 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
             //going from WIFI_SERVER to POWER_SAVING
             case WIFI_SERVER:
               stop_webserver();
+              stop_touch();
+              stop_regulation();
               ESP.restart(); //needs restart to turn off wifi
               break;
               
