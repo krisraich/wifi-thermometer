@@ -8,6 +8,8 @@
  * Must be tested
  */
 
+bool regultaion_is_running = false;
+bool regultaion_has_stopped = false;
 
 //pid settings and gains
 #define BANGBANG 6 //if temperature is more than X degrees below or above setpoint, OUTPUT will be set to min or max respectively
@@ -27,7 +29,7 @@ AutoPIDRelay pid_1(&input_1, &setpoint_1, &relay_state1, RELAY_PULS_WIDTH, KP, K
 AutoPIDRelay pid_2(&input_2, &setpoint_2, &relay_state2, RELAY_PULS_WIDTH, KP, KI, KD);
 
 void regulation_task(void *pvParameter) {
-  while(true){
+  while(regultaion_is_running){
     if(!pid_1.isStopped()){
       set_temp_channel1();
       pid_1.run();
@@ -42,7 +44,8 @@ void regulation_task(void *pvParameter) {
 
     vTaskDelay(REGULATION_CYCLE_TIME / portTICK_PERIOD_MS);
   }
-  
+  regultaion_has_stopped = true;
+  vTaskDelete( NULL );
 }
 
 void setup_regulation(){
@@ -62,12 +65,11 @@ void setup_regulation(){
   
   clear_channel1();
   clear_channel2();
-
-  xTaskCreate(&regulation_task, "regulation_task", FREE_RTOS_STACK_SIZE, NULL, REGULATION_TASK_PRIORITY, &regulation_handle);
   
+  regultaion_is_running = true;
+  
+  xTaskCreate(&regulation_task, "regulation_task", FREE_RTOS_STACK_SIZE, NULL, REGULATION_TASK_PRIORITY, &regulation_handle);
 }
-
-
 
 void setup_channel1(adc1_channel_t input, float target){
   //stopping & resetting
@@ -113,7 +115,10 @@ void set_temp_channel2(){
 }
 
 
-
-
+void stop_regulation() {
+  if (DEBUG) Serial.println("Reuglation Touch");
+  regultaion_is_running = false;
+  while(! regultaion_has_stopped)delay(10);
+}
 
 

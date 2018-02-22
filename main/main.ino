@@ -50,71 +50,72 @@
 // Defines & Constants & PINS
 /////////////////
 
-#define DEBUG true
+#define DEBUG                               true
 
 
-#define SLEEP_DURATION_SEC  30             /* Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history*/
-#define TEMPERATUR_HISTORY_SAMPLE_RATIO  2 /* SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)  */
+#define SLEEP_DURATION_SEC                  30 //Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history
+#define TEMPERATUR_HISTORY_SAMPLE_RATIO     2 // SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)
 
-#define WIFI_AP_SSID "ESP32"              //Hotspot Wlan SSID
-//#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot Wlan Passwort, Auskommentieren für offenen Hotspot
+#define WIFI_AP_SSID                        "ESP32"         //Hotspot Wlan SSID
+//#define WIFI_AP_PASSWORD                  "TestTest123"  //Hotspot Wlan Passwort, Auskommentieren für offenen Hotspot
 
 
 
 //onboard button for Wroom Dev Board
-#define ON_BOARD_BUTTON 0
-#define ON_BOARD_BUTTON_PULLDOWN_MODE true
+#define ON_BOARD_BUTTON                       0
+#define ON_BOARD_BUTTON_PULLDOWN_MODE         true
 
 //onboard LED for Wroom Dev Board
-#define ON_BOARD_LED GPIO_NUM_27
-#define ON_BOARD_LED_PULLDOWN_MODE true
+#define ON_BOARD_LED                          GPIO_NUM_27
+#define ON_BOARD_LED_PULLDOWN_MODE            true
 
 //Touch button inputs
-#define TOUCH_TIME 3 //time in measuring cycles. 1 Cylce 35ms
-#define MODE_TOUCH_BUTTON TOUCH_PAD_NUM3 //GPIO 15 See: https://github.com/espressif/arduino-esp32/blob/master/tools/sdk/include/driver/driver/touch_pad.h
-#define OK_TOUCH_BUTTON TOUCH_PAD_NUM4 // GPIO 13 Button für refresh
-#define TOUTCH_THRESHOLD 0.6 // greater value = more sensitive. Max = 0.99, Min = 0.01
+#define TOUCH_TIME                            3 //time in measuring cycles. 1 Cylce 35ms
+#define MODE_TOUCH_BUTTON                     TOUCH_PAD_NUM3 //GPIO 15 See: https://github.com/espressif/arduino-esp32/blob/master/tools/sdk/include/driver/driver/touch_pad.h
+#define OK_TOUCH_BUTTON                       TOUCH_PAD_NUM4 // GPIO 13 Button für refresh
+#define TOUTCH_THRESHOLD                      0.6 // greater value = more sensitive. Max = 0.99, Min = 0.01
 
 //Pin für LoLin / waveshare 2.9
-#define DISPLAY_BUSY GPIO_NUM_17 // Display BUSY = any GPIO
-#define DISPLAY_RST GPIO_NUM_16 //Display RESET = any GPIO
-#define DISPLAY_DC GPIO_NUM_4 //DATA/COMMAND = any GPIO
-#define DISPLAY_CS SS //SPI CHIP SELECT = PIN 5
-#define DISPLAY_CLK SCK //SPI CLOCK = Pin 18
-#define DISPLAY_DIN MOSI //SPI MOSI (master out slave in) = PIN 23
-#define DISABLE_DIAGNOSTIC_OUTPUT     /* Disables Output of Display class*/
+#define DISPLAY_BUSY                          GPIO_NUM_17 // Display BUSY = any GPIO
+#define DISPLAY_RST                           GPIO_NUM_16 //Display RESET = any GPIO
+#define DISPLAY_DC                            GPIO_NUM_4 //DATA/COMMAND = any GPIO
+#define DISPLAY_CS                            SS //SPI CHIP SELECT = PIN 5
+#define DISPLAY_CLK                           SCK //SPI CLOCK = Pin 18
+#define DISPLAY_DIN                           MOSI //SPI MOSI (master out slave in) = PIN 23
+#define DISABLE_DIAGNOSTIC_OUTPUT             1 // Disables Output of Display class
 
 //thermal control / regulation
-#define CHANNEL_1 GPIO_NUM_14   //Pin out for relais 1
-#define CHANNEL_2 GPIO_NUM_27   //Pin out for relais 2
-#define RELAY_PULS_WIDTH 30 * mS_TO_S_FACTOR //10 sec?
-#define REGULATION_CYCLE_TIME mS_TO_S_FACTOR //1 sec?
+#define CHANNEL_1                             GPIO_NUM_14   //Pin out for relais 1
+#define CHANNEL_2                             GPIO_NUM_27   //Pin out for relais 2
+#define RELAY_PULS_WIDTH                      30 * mS_TO_S_FACTOR //10 sec?
+#define REGULATION_CYCLE_TIME                 mS_TO_S_FACTOR //1 sec?
 
 // Battery stuff
-//#define IGNORE_BATTERY_VOLTAGE  //delete for production
-#define BATTERY_VOLTAGE_ANALOG_IN  ADC1_CHANNEL_0 //PIN VP
-#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1  22000
-#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2  BATTERY_VOLTAGE_DEVIDING_RESISTOR_1 /* verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN */
-#define MINIMUM_BATTERY_VOLTAGE 2.8       /*Abschalt Spannung. für Lithium-Ionen-Akku. Tiefentladung bei 2,5V. Minimale Betriebsspannung ESP32 2,3V + 0,1V Dropout vom Regler = 2,4V . Bei 2,8V sollt genügend restkapazität vorhanden sein */
-#define MAX_BATTERY_VOLTAGE 4.2           //Maximale LiIon Zellenspannung
-#define SWITCH_TO_POWERSAVE_WHEN_BAT_LOW  7 //Schalte unter X prozent Batterie in POWER_SAVE modus. Auskommentieren um zu deaktivieren 
+//#define IGNORE_BATTERY_VOLTAGE              1 //delete for production
+#define BATTERY_VOLTAGE_ANALOG_IN             ADC1_CHANNEL_0 //PIN VP
+#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1   22000
+#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2   22000 //verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN 
+#define MINIMUM_BATTERY_VOLTAGE               2.8       //Abschalt Spannung. für Lithium-Ionen-Akku. Tiefentladung bei 2,5V. Minimale Betriebsspannung ESP32 2,3V + 0,1V Dropout vom Regler = 2,4V . Bei 2,8V sollt genügend restkapazität vorhanden sein */
+#define MAX_BATTERY_VOLTAGE                   4.2   //Maximale LiIon Zellenspannung
+#define SWITCH_TO_POWERSAVE_WHEN_BAT_LOW      7   //Schalte unter X prozent Batterie in POWER_SAVE modus. Auskommentieren um zu deaktivieren 
 
 
 //times and numbers
-#define uS_TO_S_FACTOR 1000000     /* Conversion factor for micro seconds to seconds */
-#define mS_TO_S_FACTOR 1000        /* Conversion factor for milli seconds to seconds */
+#define uS_TO_S_FACTOR                        1000000     // Conversion factor for micro seconds to seconds 
+#define mS_TO_S_FACTOR                        1000        // Conversion factor for milli seconds to seconds 
 
-#define MIN_TIME_BETWEEN_REFRESH  1000 /* zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann (ms) */
-#define SHOW_MENU_ON_DISPLAY_TIME 15        /* Wie lange soll das Menü auf dem Display angezeigt werden (sec)  */
+#define MIN_TIME_BETWEEN_REFRESH              1000    // zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann (ms)
+#define SHOW_MENU_ON_DISPLAY_TIME             15      // Wie lange soll das Menü auf dem Display angezeigt werden (sec)
 
-#define TOUCH_READ_TASK_PRIORITY 25 /* prioritäten direkt proportional, webserver braucht die meisten resourcen */
-#define WEBSERVER_TASK_PRIORITY 45 
-#define REFRESH_TASK_PRIORITY 15
-#define REGULATION_TASK_PRIORITY 10
-#define AUTO_CLOSE_TASK_PRIORITY 5
+#define TOUCH_READ_TASK_PRIORITY              24      //prioritäten direkt proportional (min 1, max 24), webserver braucht die meisten resourcen
+#define WEBSERVER_TASK_PRIORITY               23
+#define REFRESH_TASK_PRIORITY                 15
+#define REGULATION_TASK_PRIORITY              15
+#define AUTO_CLOSE_TASK_PRIORITY              8
 
-#define FREE_RTOS_STACK_SIZE 4096
-//#define INCLUDE_vTaskDelete 1
+#define FREE_RTOS_STACK_SIZE                  4096
+//#define configUSE_TIME_SLICING              1
+//#define INCLUDE_vTaskDelete                 1
 
 /////////////////
 // LIBS
@@ -215,6 +216,10 @@ TaskHandle_t regulation_handle = NULL;
 TaskHandle_t refresh_handle = NULL;
 TaskHandle_t menu_close_handle = NULL;
 
+//portMUX_TYPE display_mutex = portMUX_INITIALIZER_UNLOCKED;
+//portMUX_TYPE webserver_mutex = portMUX_INITIALIZER_UNLOCKED;
+//portMUX_TYPE touch_mutex = portMUX_INITIALIZER_UNLOCKED;
+
 /////////////////
 // Init Display
 /////////////////
@@ -272,10 +277,11 @@ void setup() {
       delay(10); // wait for serial port to connect. Needed for native USB port only
     }
   }
-
+  
   led_start_blinking();
 
   int bootups = setup_deep_sleep();
+  
   setup_adc();
   
   setup_data_store();
@@ -314,7 +320,6 @@ void setup() {
       return;
     case WIFI_SERVER:
       start_wifi_mode();
-      return;
   }
 }
 
@@ -420,6 +425,7 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
               
             //going from WIFI_SERVER to POWER_SAVING
             case WIFI_SERVER:
+              stop_webserver();
               ESP.restart(); //needs restart to turn off wifi
               break;
               
@@ -443,6 +449,7 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
               
             //going from WIFI_SERVER to POWER_SAVING
             case WIFI_SERVER:
+              stop_webserver();
               ESP.restart(); //needs restart to turn off wifi
               break;
               
@@ -505,14 +512,13 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
   }else{
     if(DEBUG) Serial.println("You shouldn't see this...");
   }
-  
+
 }
 
 /////////////////
 // Loop - not executed in power saving mode
 /////////////////
 void loop() {
-   //nope();
-  vTaskDelay(3 * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
+  delay(100000);
 }
 

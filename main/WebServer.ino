@@ -7,6 +7,8 @@
 const char HTML_HEAD[] = "<!DOCTYPE html><html><head><title>Grillthermometer</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta http-equiv=\"refresh\" content=\"10\"></head><body><h1>Grillthermometer</h1>";
 const char HTML_FOOTER[] = "<footer>By Kris 2018 &#8226; Pitztaler Grillverein &#8226; <a href=\"https://grillverein.tirol\">grillverein.tirol</a> &#8226; <a href=\"mailto:info@grillverein.tirol\">info@grillverein.tirol</a></footer></body></html>";
 
+bool server_is_running = false, server_has_stopped = false;
+
 void sending_html(WiFiClient &client){
    // send a standard http response header
     client.println("Content-Type: text/html");
@@ -68,7 +70,7 @@ void webserver_ap_task(void *pvParameter) {
   char linebuf[80];
   int charcount = 0;
 
-  while (true) {
+  while (server_is_running) {
     // listen for incoming clients
     WiFiClient client = web_server.available();
     if (client) {
@@ -83,7 +85,7 @@ void webserver_ap_task(void *pvParameter) {
       charcount = 0;
       // an http request ends with a blank line
       boolean currentLineIsBlank = true;
-      while (client.connected()) {
+      while (client.connected() && server_is_running) {
         if (client.available()) {
           
           char c = client.read(); //read byte for byte...
@@ -130,10 +132,21 @@ void webserver_ap_task(void *pvParameter) {
       //if (DEBUG) Serial.println("client processed");
     }
   }
+  //disable wifi
+  
+  WiFi.mode(WIFI_OFF);
+  server_has_stopped = true;
+  vTaskDelete( NULL );
 }
 
 
 void setup_webserver() {
+  server_is_running = true;
   xTaskCreate(&webserver_ap_task, "webserver_ap_task", FREE_RTOS_STACK_SIZE, NULL, WEBSERVER_TASK_PRIORITY, &webserver_handle);
+}
+void stop_webserver() {
+  if (DEBUG) Serial.println("Disabling Webserver/Wifi");
+  server_is_running = false;
+  while(! server_has_stopped)delay(10);
 }
 

@@ -29,9 +29,11 @@ void drawCornerTest()
 
 
 void setup_display(){
+  //taskENTER_CRITICAL(&display_mutex);
   if(DEBUG) Serial.println("Init Display");
   display.init();
   display.setRotation(3); //font orientation
+  //taskEXIT_CRITICAL(&display_mutex);
 }
 
 void getBoxCords(int cellNr, int &x, int &y){
@@ -48,6 +50,7 @@ void getBoxCords(int cellNr, int &x, int &y){
 }
 
 void update_display(){
+  //taskENTER_CRITICAL(&display_mutex);
   if(DEBUG){
     Serial.println("----- Display Temps ------");
     for (adc1_channel_t current_channel : ADC_CHANNELS){      
@@ -106,9 +109,11 @@ void update_display(){
   display.update();
 
   last_refresh = millis();
+  //taskEXIT_CRITICAL(&display_mutex);
 }
 
 void show_menu(OPERATION_MODE operation_mode){
+  //taskENTER_CRITICAL(&display_mutex);
   if(DEBUG) Serial.println("---- Showing Mode: " + String(operation_mode_to_string(operation_mode))+ " -----");
 
   print_big_text(operation_mode_to_string(operation_mode), &FreeMonoBold18pt7b);
@@ -116,19 +121,24 @@ void show_menu(OPERATION_MODE operation_mode){
   //display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
   
   last_refresh = millis();
+  //taskEXIT_CRITICAL(&display_mutex);
 }
 
 void show_shutdown(){
+  //taskENTER_CRITICAL(&display_mutex);
   if(DEBUG) Serial.println("----- Shut down ------");
   //print_big_text("Shut down empty", &FreeMonoBold18pt7b);
   //simulate time...
   display.drawBitmap(img_logo, sizeof(img_logo));
+  //taskEXIT_CRITICAL(&display_mutex);
 }
 
 
 void show_empty_battery(){
+  //taskENTER_CRITICAL(&display_mutex);
   if(DEBUG) Serial.println("----- Battery empty ------");
   display.drawBitmap(img_battery_low, sizeof(img_battery_low),  GxEPD::bm_invert);
+  //taskEXIT_CRITICAL(&display_mutex);
 }
 
 

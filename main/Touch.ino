@@ -13,7 +13,9 @@
 #define MINUMUM_TOUCH_VALUE 7000 // if user holds a touchpad while settig the thresholds it falsifies the value
 
 int s_pad_activated[TOUCH_PAD_MAX];
-portMUX_TYPE touch_mutex = portMUX_INITIALIZER_UNLOCKED;
+bool touch_is_running = false;
+bool touch_has_stopped = false;
+//portMUX_TYPE touch_mutex = portMUX_INITIALIZER_UNLOCKED;
 
 /*
   Read values sensed at all available touch pads.
@@ -63,26 +65,28 @@ void tp_set_thresholds(void){
  */
 void tp_read_task(void *pvParameter){
   
-  while (true) {
+  while (touch_is_running) {
     for (touch_pad_t current_touch : TOUCH_BUTTONS){
       if (s_pad_activated[current_touch] >= TOUCH_TIME * DECAYING_FAKTOR) {
 
         touch_button_pressed(current_touch, false);
         
         // Clear information on pad activation
-        portENTER_CRITICAL(&touch_mutex);
+        //portENTER_CRITICAL(&touch_mutex);
         s_pad_activated[current_touch] = 0;
-        portEXIT_CRITICAL(&touch_mutex);
+        //portEXIT_CRITICAL(&touch_mutex);
       }else if(s_pad_activated[current_touch] > 0){
-        portENTER_CRITICAL_ISR(&touch_mutex);
+        //portENTER_CRITICAL_ISR(&touch_mutex);
         //decaying valuee
         s_pad_activated[current_touch]--;
-        portEXIT_CRITICAL_ISR(&touch_mutex);
+        //portEXIT_CRITICAL_ISR(&touch_mutex);
       }
     }
     
     vTaskDelay(25);
   }
+  touch_has_stopped = true;
+  vTaskDelete( NULL );
 }
 
 /*
@@ -97,9 +101,9 @@ void IRAM_ATTR tp_rtc_intr(void * arg){
   
   for (touch_pad_t current_touch : TOUCH_BUTTONS){
     if ((pad_intr >> current_touch) & 0x01) {
-      portENTER_CRITICAL_ISR(&touch_mutex);
+      //portENTER_CRITICAL_ISR(&touch_mutex);
       s_pad_activated[current_touch] += DECAYING_FAKTOR;
-      portEXIT_CRITICAL_ISR(&touch_mutex);
+      //portEXIT_CRITICAL_ISR(&touch_mutex);
     }
   }
 }
@@ -141,6 +145,9 @@ void setup_touch(){
   // Register touch interrupt ISR
   touch_pad_isr_register(tp_rtc_intr, NULL);
 
+
+  touch_is_running = true;
+  
   // Start a task to show what pads have been touched
   xTaskCreate(&tp_read_task, "touch_pad_read_task", FREE_RTOS_STACK_SIZE, NULL, TOUCH_READ_TASK_PRIORITY, &touch_handle);
 
@@ -153,4 +160,10 @@ void setup_touch(){
     touch_button_pressed(get_wakeup_toch(), true);
   }
  
+}
+
+void stop_touch() {
+  if (DEBUG) Serial.println("Disabling Touch");
+  touch_is_running = false;
+  while(! touch_has_stopped)delay(10);
 }
