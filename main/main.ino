@@ -316,7 +316,6 @@ void setup() {
     case POWER_SAVING:
       if(!menu_open){
         //after ini, show temps. except when menu is open
-        update_display();
         start_power_saving_mode();
       }
       return;
