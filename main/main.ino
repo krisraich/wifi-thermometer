@@ -93,7 +93,7 @@
 #define REGULATION_CYCLE_TIME mS_TO_S_FACTOR //1 sec?
 
 // Battery stuff
-#define IGNORE_BATTERY_VOLTAGE  //delete for production
+//#define IGNORE_BATTERY_VOLTAGE  //delete for production
 #define BATTERY_VOLTAGE_ANALOG_IN  ADC1_CHANNEL_0 //PIN VP
 #define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1  22000
 #define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2  BATTERY_VOLTAGE_DEVIDING_RESISTOR_1 /* verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN */
@@ -205,7 +205,7 @@ enum BLINK_FREQUENCY {
 
 bool menu_open = false; //menu is on display
 unsigned long last_refresh = 0; //last display refresh (controll refreshrate)
-unsigned long menu_open_since = 0; //time when menu was opend for auto closing
+unsigned long last_interaction_since = 0; //time when menu was opend for auto closing
 
 OPERATION_MODE current_operation_mode;
 OPERATION_MODE selected_operation_mode;
@@ -245,7 +245,7 @@ void refresh_display(void *pvParameter) {
 
 void auto_close_menu(void *pvParameter){
   while(true){
-    if(menu_open && ((millis() - menu_open_since) > (SHOW_MENU_ON_DISPLAY_TIME * mS_TO_S_FACTOR))){
+    if(menu_open && ((millis() - last_interaction_since) > (SHOW_MENU_ON_DISPLAY_TIME * mS_TO_S_FACTOR))){
       //auto close menu
       if(DEBUG) Serial.println("Auto closing menu");
       menu_open = false;
@@ -368,6 +368,8 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
     //esp was woken up by user in power saving mode.,
     //so do nothing and just refresh the temps
   }else if (pressed_button == MODE_TOUCH_BUTTON) {
+
+    last_interaction_since = millis();
     
     //when esp was woken up by user pressing the mode button,
     //always show menu, becaus it'll never go to sleep when the menu is open
@@ -378,7 +380,6 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
       if(DEBUG) Serial.println(" to " + String(operation_mode_to_string(selected_operation_mode)));
     }else{
       menu_open = true;
-      menu_open_since = millis();
       if(menu_close_handle == NULL){
         xTaskCreate(&auto_close_menu, "auto_close_menu", FREE_RTOS_STACK_SIZE, NULL, AUTO_CLOSE_TASK_PRIORITY, &menu_close_handle);
       }

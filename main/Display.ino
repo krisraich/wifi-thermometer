@@ -119,7 +119,7 @@ void show_menu(OPERATION_MODE operation_mode){
 }
 
 void show_shutdown(){
-  Serial.println("----- Shut down ------");
+  if(DEBUG) Serial.println("----- Shut down ------");
   //print_big_text("Shut down empty", &FreeMonoBold18pt7b);
   //simulate time...
   display.drawBitmap(img_logo, sizeof(img_logo));
@@ -127,10 +127,8 @@ void show_shutdown(){
 
 
 void show_empty_battery(){
-  Serial.println("----- Battery empty ------");
-  print_big_text("Bat empty", &FreeMonoBold18pt7b);
-  //simulate time...
-  display.drawBitmap(img_battery_low, sizeof(img_battery_low));
+  if(DEBUG) Serial.println("----- Battery empty ------");
+  display.drawBitmap(img_battery_low, sizeof(img_battery_low),  GxEPD::bm_invert);
 }
 
 
