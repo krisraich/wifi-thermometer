@@ -44,8 +44,6 @@
     2. sometimes a timeout (Busy) occurs with FreeRTOS. tune priorities!
     3. Test PID regulation
     4. write propper documentation
-    5. Test new images
-    6. Test BLE Mode
 */
 
 /////////////////
@@ -61,7 +59,7 @@
 #define WIFI_AP_SSID "ESP32"              //Hotspot Wlan SSID
 //#define WIFI_AP_PASSWORD "TestTest123"  //Hotspot Wlan Passwort, Auskommentieren für offenen Hotspot
 
-#define SHOW_MENU_ON_DISPLAY_TIME  7      /* Wie lange soll das Menü auf dem Display angezeigt werden (sec)  */
+#define SHOW_MENU_ON_DISPLAY_TIME  15      /* Wie lange soll das Menü auf dem Display angezeigt werden (sec)  */
 
 //onboard button for Wroom Dev Board
 #define ON_BOARD_BUTTON 0
