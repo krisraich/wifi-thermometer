@@ -41,7 +41,7 @@
 
   Power Consumption
     Deep Sleep: 1.3mA
-    Normal operation: ~ 50mA
+    Normal operation: ~ 42mA
     Wifi Server: ~150mA
 
    Bugs:
@@ -70,8 +70,8 @@
 #define ON_BOARD_BUTTON                       0
 #define ON_BOARD_BUTTON_PULLDOWN_MODE         true
 
-//onboard LED for Wroom Dev Board
-#define ON_BOARD_LED                          GPIO_NUM_27
+//onboard LED for LoLin
+#define ON_BOARD_LED                          GPIO_NUM_22 //GPIO_NUM_27 for Wroom Dev Board
 #define ON_BOARD_LED_PULLDOWN_MODE            true
 
 //Touch button inputs
