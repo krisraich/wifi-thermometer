@@ -45,10 +45,8 @@
     Wifi Server: ~150mA
 
    Bugs:
-    1. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
-    2. sometimes a timeout (Busy) occurs with FreeRTOS. tune priorities!
-    3. Test PID regulation
-    4. write propper documentation
+    1. Remove Tasks, vTaskDelay
+    2. use log not serial print
 */
 
 /////////////////
@@ -56,6 +54,7 @@
 /////////////////
 
 #define DEBUG                               true
+#define LOG_LOCAL_LEVEL                     ESP_LOG_VERBOSE
 
 
 #define SLEEP_DURATION_SEC                  30 //Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history
@@ -112,23 +111,27 @@
 #define MIN_TIME_BETWEEN_REFRESH              1000    // zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann (ms)
 #define SHOW_MENU_ON_DISPLAY_TIME             15      // Wie lange soll das Menü auf dem Display angezeigt werden (sec)
 
-#define TOUCH_READ_TASK_PRIORITY              24      //prioritäten direkt proportional (min 1, max 24), webserver braucht die meisten resourcen
-#define WEBSERVER_TASK_PRIORITY               20
-#define REFRESH_TASK_PRIORITY                 15
-#define REGULATION_TASK_PRIORITY              15
-#define AUTO_CLOSE_TASK_PRIORITY              8
+//logs
+#define LOG_TAG_MAIN                          "Main"
+#define LOG_TAG_ADC                           "ADC"
+#define LOG_TAG_BLUETOOTH                     "Bluetooth"
+#define LOG_TAG_DATA_STORE                    "Data Store"
+#define LOG_TAG_DEEP_SLEEP                    "Deep Sleep"
+#define LOG_TAG_DISPLAY                       "Display"
+#define LOG_TAG_LED                           "Led"
+#define LOG_TAG_LOG                           "Logger"
+#define LOG_TAG_RECORDER                      "Recorder"
+#define LOG_TAG_REGULATION                    "Regulation"
+#define LOG_TAG_TOUCH                         "Touch"
+#define LOG_TAG_WEBSERVER                     "Webserver"
 
-#define FREE_RTOS_STACK_SIZE                  4096
-//#define configUSE_TIME_SLICING              1
-//#define INCLUDE_vTaskDelete                 1
 
 /////////////////
 // LIBS
 /////////////////
 
-//scheduler
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+//log
+#include "esp_log.h"
 
 //adc
 #include <driver/adc.h>
@@ -155,6 +158,9 @@
 
 //webserver
 #include <WiFi.h>
+#include <FS.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 #include "res/bin_favicon.h"
 
 //EEPROM
@@ -215,15 +221,11 @@ unsigned long last_interaction_since = 0; //time when menu was opend for auto cl
 OPERATION_MODE current_operation_mode;
 OPERATION_MODE selected_operation_mode;
 
-TaskHandle_t webserver_handle = NULL;
-TaskHandle_t touch_handle = NULL;
-TaskHandle_t regulation_handle = NULL;
-TaskHandle_t refresh_handle = NULL;
-TaskHandle_t menu_close_handle = NULL;
 
-//portMUX_TYPE display_mutex = portMUX_INITIALIZER_UNLOCKED;
-//portMUX_TYPE webserver_mutex = portMUX_INITIALIZER_UNLOCKED;
-//portMUX_TYPE touch_mutex = portMUX_INITIALIZER_UNLOCKED;
+hw_timer_t * led_timer = NULL;
+hw_timer_t * regulation_timer = NULL;
+hw_timer_t * refresh_timer = NULL;
+hw_timer_t * touch_timer = NULL;
 
 /////////////////
 // Init Display
@@ -273,7 +275,13 @@ void auto_close_menu(void *pvParameter) {
 /////////////////
 void setup() {
 
+  /*
+   * Init hardware, which is used every time
+   */
+   
   setup_led();
+
+  setup_log();
 
   //Initialize serial and wait for port to open:
   if (DEBUG) {
@@ -290,8 +298,6 @@ void setup() {
   setup_adc();
 
   setup_data_store();
-
-  setup_recorder();
 
   setup_display();
 
@@ -310,14 +316,26 @@ void setup() {
   setup_touch();
 
 
-  if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
+  setup_recorder();
 
+//  if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
+  ESP_LOGI(LOG_TAG_MAIN, "Starting '%s' mode", operation_mode_to_string(current_operation_mode));
+
+
+  //todo: check if menu is open
+
+
+  /*
+   * Now check which mode to load,
+   * If WiFi mode, load more stuff
+   */
   switch (current_operation_mode) {
     default:
+      ESP_LOGW(LOG_TAG_MAIN, "Unknown operation mode. Fall back to POWER_SAVE");
       //set default
-      if (DEBUG) Serial.println("Falling back to POWER_SAVE mode");
       save_operation_mode(POWER_SAVING);
     case BT_LE_SLAVE:
+      send_data_with_ble();
     case POWER_SAVING:
       if (!menu_open) {
         //after ini, show temps. except when menu is open
@@ -352,7 +370,11 @@ void start_wifi_mode() {
   update_display();
   setup_webserver();
   setup_regulation();
-  xTaskCreate(&refresh_display, "refresh_display", FREE_RTOS_STACK_SIZE, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
+  //xTaskCreate(&refresh_display, "refresh_display", FREE_RTOS_STACK_SIZE, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
+}
+
+void send_data_with_ble(){
+  
 }
 
 void start_power_saving_mode() {
@@ -413,9 +435,9 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
       if (DEBUG) Serial.println(" to " + String(operation_mode_to_string(selected_operation_mode)));
     } else {
       menu_open = true;
-      if (menu_close_handle == NULL) {
-        xTaskCreate(&auto_close_menu, "auto_close_menu", FREE_RTOS_STACK_SIZE, NULL, AUTO_CLOSE_TASK_PRIORITY, &menu_close_handle);
-      }
+      //if (menu_close_handle == NULL) {
+        //xTaskCreate(&auto_close_menu, "auto_close_menu", FREE_RTOS_STACK_SIZE, NULL, AUTO_CLOSE_TASK_PRIORITY, &menu_close_handle);
+      //}
     }
     show_menu(selected_operation_mode);
 

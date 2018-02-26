@@ -7,7 +7,7 @@
 
 
 bool led_powerd = false;
-hw_timer_t * timer = NULL;
+
 
 void IRAM_ATTR toogle_led(){
   if(led_powerd)
@@ -17,14 +17,14 @@ void IRAM_ATTR toogle_led(){
 }
 
 void set_blink_frequency(BLINK_FREQUENCY frequency){
-  timerAlarmWrite(timer, uS_TO_S_FACTOR / frequency , true);
+  timerAlarmWrite(led_timer, uS_TO_S_FACTOR / frequency , true);
 }
 
 void setup_led(){
   pinMode(ON_BOARD_LED, OUTPUT);
   led_on();
-  timer = timerBegin(0, 80, true); //timer id 0 bis 3, 80 = devider
-  timerAttachInterrupt(timer, &toogle_led, true);
+  led_timer = timerBegin(0, 80, true); //timer id 0 bis 3, 80 = devider
+  timerAttachInterrupt(led_timer, &toogle_led, true);
   set_blink_frequency(NORMAL);
   
 }
@@ -32,12 +32,12 @@ void setup_led(){
 void led_start_blinking(){
   if(DEBUG) Serial.println("Start LED blinking");
   led_on();
-  timerAlarmEnable(timer);
+  timerAlarmEnable(led_timer);
 }
 
 void led_stop_blinking(){
   if(DEBUG) Serial.println("Stop LED blinking");
-  timerEnd(timer);
+  timerEnd(led_timer);
   led_off();
 }
 

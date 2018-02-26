@@ -149,7 +149,8 @@ void setup_touch(){
   touch_is_running = true;
   
   // Start a task to show what pads have been touched
-  xTaskCreate(&tp_read_task, "touch_pad_read_task", FREE_RTOS_STACK_SIZE, NULL, TOUCH_READ_TASK_PRIORITY, &touch_handle);
+  //todo implement timer
+  //xTaskCreate(&tp_read_task, "touch_pad_read_task", FREE_RTOS_STACK_SIZE, NULL, TOUCH_READ_TASK_PRIORITY, &touch_handle);
 
   //enable interrupts
   touch_pad_intr_enable();  //touch_pad_intr_disable()
