@@ -17,8 +17,8 @@
 
   Dev Notes:
     Dev Board: Pin6 digital out = Error
-
-  USED REPOSITORIES: 
+  yyx yxsxsxsxs
+  USED REPOSITORIES:
     E-Paper: https://github.com/ZinggJM/GxEPD
     Via Librarie manager: Adafruit GFX, AutoPID
 
@@ -38,6 +38,11 @@
     4. Mode Bottom pressed:
       4.A Menu active: lode next mode (cycle through 2.A - 2.D)
       4.B Program active: do nothing
+
+  Power Consumption
+    Deep Sleep: 1.3mA
+    Normal operation: ~ 50mA
+    Wifi Server: ~150mA
 
    Bugs:
     1. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
@@ -93,8 +98,8 @@
 // Battery stuff
 //#define IGNORE_BATTERY_VOLTAGE              1 //delete for production
 #define BATTERY_VOLTAGE_ANALOG_IN             ADC1_CHANNEL_0 //PIN VP
-#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1   22000
-#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2   22000 //verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN 
+#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1   100800
+#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2   100500 //verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN 
 #define MINIMUM_BATTERY_VOLTAGE               2.8       //Abschalt Spannung. für Lithium-Ionen-Akku. Tiefentladung bei 2,5V. Minimale Betriebsspannung ESP32 2,3V + 0,1V Dropout vom Regler = 2,4V . Bei 2,8V sollt genügend restkapazität vorhanden sein */
 #define MAX_BATTERY_VOLTAGE                   4.2   //Maximale LiIon Zellenspannung
 #define SWITCH_TO_POWERSAVE_WHEN_BAT_LOW      7   //Schalte unter X prozent Batterie in POWER_SAVE modus. Auskommentieren um zu deaktivieren 
@@ -108,7 +113,7 @@
 #define SHOW_MENU_ON_DISPLAY_TIME             15      // Wie lange soll das Menü auf dem Display angezeigt werden (sec)
 
 #define TOUCH_READ_TASK_PRIORITY              24      //prioritäten direkt proportional (min 1, max 24), webserver braucht die meisten resourcen
-#define WEBSERVER_TASK_PRIORITY               23
+#define WEBSERVER_TASK_PRIORITY               20
 #define REFRESH_TASK_PRIORITY                 15
 #define REGULATION_TASK_PRIORITY              15
 #define AUTO_CLOSE_TASK_PRIORITY              8
@@ -161,7 +166,7 @@
 //handy functions
 #define min(a,b) ((a)<(b)?(a):(b));
 #define max(a,b) ((a)>(b)?(a):(b));
-#define nope()  __asm__("nop\n\t"); 
+#define nope()  __asm__("nop\n\t");
 
 /////////////////
 // Enums and other constants
@@ -185,7 +190,7 @@ const touch_pad_t TOUCH_BUTTONS[] {
   static_cast<touch_pad_t>(MODE_TOUCH_BUTTON),
 };
 
-const gpio_num_t TEMP_CONTROL_PINS[]{
+const gpio_num_t TEMP_CONTROL_PINS[] {
   CHANNEL_1,
   CHANNEL_2
 };
@@ -232,29 +237,29 @@ GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
 /////////////////
 
 void refresh_display(void *pvParameter) {
-  while(true){
+  while (true) {
 
     check_battery_life();
-    
+
     //only refresh when user hasn't refreshed it
-    if(!menu_open && ((millis() - last_refresh) > (SLEEP_DURATION_SEC * mS_TO_S_FACTOR))){
+    if (!menu_open && ((millis() - last_refresh) > (SLEEP_DURATION_SEC * mS_TO_S_FACTOR))) {
       if (DEBUG) Serial.println("Auto refreshing temps: ");
       update_display();
     }
-    
+
     record_temperatures();
     vTaskDelay(SLEEP_DURATION_SEC * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
   }
 }
 
-void auto_close_menu(void *pvParameter){
-  while(true){
-    if(menu_open && ((millis() - last_interaction_since) > (SHOW_MENU_ON_DISPLAY_TIME * mS_TO_S_FACTOR))){
+void auto_close_menu(void *pvParameter) {
+  while (true) {
+    if (menu_open && ((millis() - last_interaction_since) > (SHOW_MENU_ON_DISPLAY_TIME * mS_TO_S_FACTOR))) {
       //auto close menu
-      if(DEBUG) Serial.println("Auto closing menu");
+      if (DEBUG) Serial.println("Auto closing menu");
       menu_open = false;
       update_display();
-      if(current_operation_mode == POWER_SAVING || current_operation_mode == BT_LE_SLAVE){
+      if (current_operation_mode == POWER_SAVING || current_operation_mode == BT_LE_SLAVE) {
         start_power_saving_mode();
       }
     }
@@ -277,19 +282,19 @@ void setup() {
       delay(10); // wait for serial port to connect. Needed for native USB port only
     }
   }
-  
+
   led_start_blinking();
 
   int bootups = setup_deep_sleep();
-  
+
   setup_adc();
-  
+
   setup_data_store();
 
   setup_recorder();
 
   setup_display();
-  
+
   check_battery_life();
 
   //enter only on reset
@@ -299,14 +304,14 @@ void setup() {
 
   //must set befor touch
   current_operation_mode = get_last_operation_mode();
-  selected_operation_mode = get_last_operation_mode(); //using current_operation_mode would copy the reference... 
+  selected_operation_mode = get_last_operation_mode(); //using current_operation_mode would copy the reference...
 
   //also needed for deepsleep
   setup_touch();
 
-  
+
   if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
- 
+
   switch (current_operation_mode) {
     default:
       //set default
@@ -314,7 +319,7 @@ void setup() {
       save_operation_mode(POWER_SAVING);
     case BT_LE_SLAVE:
     case POWER_SAVING:
-      if(!menu_open){
+      if (!menu_open) {
         //after ini, show temps. except when menu is open
         start_power_saving_mode();
       }
@@ -324,26 +329,26 @@ void setup() {
   }
 }
 
-void check_battery_life(){
-  #if ! defined(IGNORE_BATTERY_VOLTAGE)
+void check_battery_life() {
+#if ! defined(IGNORE_BATTERY_VOLTAGE)
 
-    #if defined(SWITCH_TO_POWERSAVE_WHEN_BAT_LOW)
-      if(current_operation_mode == WIFI_SERVER && get_battery_percente() <= SWITCH_TO_POWERSAVE_WHEN_BAT_LOW){
-        if (DEBUG) Serial.println("Battery is nearly empty.. switchng to POWER_SAVE");
-        save_operation_mode(POWER_SAVING);
-        ESP.restart();
-      }
-    #endif
-  
-    if(get_battery_voltage() <= MINIMUM_BATTERY_VOLTAGE){
-      if (DEBUG) Serial.println("Battery is empty... shutting down");
-      show_empty_battery();
-      shutdown_esp();
-    }
-  #endif
+#if defined(SWITCH_TO_POWERSAVE_WHEN_BAT_LOW)
+  if (current_operation_mode == WIFI_SERVER && get_battery_percente() <= SWITCH_TO_POWERSAVE_WHEN_BAT_LOW) {
+    if (DEBUG) Serial.println("Battery is nearly empty.. switchng to POWER_SAVE");
+    save_operation_mode(POWER_SAVING);
+    ESP.restart();
+  }
+#endif
+
+  if (get_battery_voltage() <= MINIMUM_BATTERY_VOLTAGE) {
+    if (DEBUG) Serial.println("Battery is empty... shutting down");
+    show_empty_battery();
+    shutdown_esp();
+  }
+#endif
 }
 
-void start_wifi_mode(){
+void start_wifi_mode() {
   update_display();
   setup_webserver();
   setup_regulation();
@@ -352,83 +357,83 @@ void start_wifi_mode(){
 
 void start_power_saving_mode() {
 
-  if(current_operation_mode == BT_LE_SLAVE){
+  if (current_operation_mode == BT_LE_SLAVE) {
     //search for wifi devices and send data via BLE
-    if(DEBUG){
+    if (DEBUG) {
       Serial.println("Searching Devices in WiFi Mode");
       setup_bluetooth();
       delay(200);
       Serial.println("Sending Data via Bluetooth Low Energy (BLE)");
     }
-    
+
   }
 
   update_display();
-  
+
   deep_sleep_wake_up_after_time(SLEEP_DURATION_SEC);
   deep_sleep_wake_up_on_touch();
   led_stop_blinking();
   deep_sleep_start();
 }
 
-void default_procedure_on_error(){
-  if(DEBUG) Serial.println("Default procedure startet.. rebooting into POWER_SAVING");
+void default_procedure_on_error() {
+  if (DEBUG) Serial.println("Default procedure startet.. rebooting into POWER_SAVING");
   save_operation_mode(POWER_SAVING);
   prepare_to_shutdown();
   ESP.restart();
 }
 
 
-void prepare_to_shutdown(){
-  if(current_operation_mode == WIFI_SERVER){
+void prepare_to_shutdown() {
+  if (current_operation_mode == WIFI_SERVER) {
     stop_webserver();
     stop_regulation();
   }
-  stop_touch(); 
+  stop_touch();
 }
 
 
 void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
 
-  if(DEBUG) Serial.println("Touch input: " + String(pressed_button == OK_TOUCH_BUTTON ? "ok/refresh" : "mode"));
-  
+  if (DEBUG) Serial.println("Touch input: " + String(pressed_button == OK_TOUCH_BUTTON ? "ok/refresh" : "mode"));
+
   if (on_boot && pressed_button == OK_TOUCH_BUTTON) {
     //esp was woken up by user in power saving mode.,
     //so do nothing and just refresh the temps
-  }else if (pressed_button == MODE_TOUCH_BUTTON) {
+  } else if (pressed_button == MODE_TOUCH_BUTTON) {
 
     last_interaction_since = millis();
-    
+
     //when esp was woken up by user pressing the mode button,
     //always show menu, becaus it'll never go to sleep when the menu is open
     //since the menu is also called when esp is awake, just ignor boot option and show menu
-    if(menu_open){
-      if(DEBUG) Serial.print("switch mode from " + String(operation_mode_to_string(selected_operation_mode)));
+    if (menu_open) {
+      if (DEBUG) Serial.print("switch mode from " + String(operation_mode_to_string(selected_operation_mode)));
       selected_operation_mode = cycle_through_modes(selected_operation_mode);
-      if(DEBUG) Serial.println(" to " + String(operation_mode_to_string(selected_operation_mode)));
-    }else{
+      if (DEBUG) Serial.println(" to " + String(operation_mode_to_string(selected_operation_mode)));
+    } else {
       menu_open = true;
-      if(menu_close_handle == NULL){
+      if (menu_close_handle == NULL) {
         xTaskCreate(&auto_close_menu, "auto_close_menu", FREE_RTOS_STACK_SIZE, NULL, AUTO_CLOSE_TASK_PRIORITY, &menu_close_handle);
       }
     }
     show_menu(selected_operation_mode);
 
-  }else if(pressed_button == OK_TOUCH_BUTTON){
+  } else if (pressed_button == OK_TOUCH_BUTTON) {
     // ok button is refresh button when menu is active
-    if(menu_open){
+    if (menu_open) {
       //select menu ....
-      if(DEBUG) Serial.println("select mode! Going from " + String(operation_mode_to_string(current_operation_mode)) + 
-        " to " + String(operation_mode_to_string(selected_operation_mode)));
+      if (DEBUG) Serial.println("select mode! Going from " + String(operation_mode_to_string(current_operation_mode)) +
+                                  " to " + String(operation_mode_to_string(selected_operation_mode)));
       menu_open = false;
-      
-      switch(selected_operation_mode){
-        
+
+      switch (selected_operation_mode) {
+
         //only when mode was active and user waked up esp
         case POWER_SAVING:
           save_operation_mode(POWER_SAVING);
-          switch(current_operation_mode){
-            
+          switch (current_operation_mode) {
+
             //going from BT_LE_SLAVE to POWER_SAVING
             case BT_LE_SLAVE:
             //going from POWER_SAVING to POWER_SAVING
@@ -436,13 +441,13 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
               current_operation_mode = POWER_SAVING;
               start_power_saving_mode(); //menu is closed.. now go to sleep
               break;
-              
+
             //going from WIFI_SERVER to POWER_SAVING
             case WIFI_SERVER:
               prepare_to_shutdown();
               ESP.restart(); //needs restart to turn off wifi
               break;
-              
+
             //default: mode has been saved and it should load next boot
             default: ESP.restart();
           }
@@ -451,8 +456,8 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
         //only when mode was active and user waked up esp
         case BT_LE_SLAVE:
           save_operation_mode(BT_LE_SLAVE);
-          switch(current_operation_mode){
-            
+          switch (current_operation_mode) {
+
             //going from BT_LE_SLAVE to BT_LE_SLAVE
             case BT_LE_SLAVE:
             //going from POWER_SAVING to BT_LE_SLAVE
@@ -460,33 +465,33 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
               current_operation_mode = BT_LE_SLAVE;
               start_power_saving_mode(); //menu is closed.. now go to sleep
               break;
-              
+
             //going from WIFI_SERVER to POWER_SAVING
             case WIFI_SERVER:
               prepare_to_shutdown();
               ESP.restart(); //needs restart to turn off wifi
               break;
-              
+
             //default: mode has been saved and it should load next boot
             default: ESP.restart();
           }
           break;
-        
+
         case WIFI_SERVER:
 
           //don't switch to wifi mode when battery is weak
-          #if defined(SWITCH_TO_POWERSAVE_WHEN_BAT_LOW)
-              if(get_battery_percente() <= SWITCH_TO_POWERSAVE_WHEN_BAT_LOW){
-                if (DEBUG) Serial.println("Battery is nearly empty.. cant switch to wifi mode");
-                show_empty_battery();
-                vTaskDelay(2000 / portTICK_PERIOD_MS); //show for 2 seconds
-                break;
-              }
-          #endif
-        
+#if defined(SWITCH_TO_POWERSAVE_WHEN_BAT_LOW)
+          if (get_battery_percente() <= SWITCH_TO_POWERSAVE_WHEN_BAT_LOW) {
+            if (DEBUG) Serial.println("Battery is nearly empty.. cant switch to wifi mode");
+            show_empty_battery();
+            vTaskDelay(2000 / portTICK_PERIOD_MS); //show for 2 seconds
+            break;
+          }
+#endif
+
           save_operation_mode(WIFI_SERVER);
-          switch(current_operation_mode){
-            
+          switch (current_operation_mode) {
+
             //going from BT_LE_SLAVE to WIFI_SERVER
             case BT_LE_SLAVE:
             //going from POWER_SAVING to WIFI_SERVER
@@ -494,12 +499,12 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
               current_operation_mode = WIFI_SERVER;
               start_wifi_mode();
               break;
-            
+
             //going from WIFI_SERVER to WIFI_SERVER
             case WIFI_SERVER:
               if (DEBUG) Serial.println("nothing todo...");
               break;
-              
+
             //default: mode has been saved and it should load next boot
             default: default_procedure_on_error();
           }
@@ -511,21 +516,21 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
           prepare_to_shutdown();
           shutdown_esp();
           break;
-        
+
         //default fallback
         default: default_procedure_on_error();
       }
-      
+
       //if nothing todo.. update display
       update_display();
-              
-    }else if(millis() - last_refresh > MIN_TIME_BETWEEN_REFRESH){
-      if(DEBUG) Serial.println("user refresh temps: ");
+
+    } else if (millis() - last_refresh > MIN_TIME_BETWEEN_REFRESH) {
+      if (DEBUG) Serial.println("user refresh temps: ");
       update_display();
     }
 
-  }else{
-    if(DEBUG) Serial.println("You shouldn't see this...");
+  } else {
+    if (DEBUG) Serial.println("You shouldn't see this...");
   }
 
 }
