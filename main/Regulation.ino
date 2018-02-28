@@ -67,9 +67,8 @@ void setup_regulation(){
   clear_channel2();
   
   regultaion_is_running = true;
-
-  //todo implement timer
-  //xTaskCreate(&regulation_task, "regulation_task", FREE_RTOS_STACK_SIZE, NULL, REGULATION_TASK_PRIORITY, &regulation_handle);
+  
+  xTaskCreate(&regulation_task, "regulation_task", FREE_RTOS_STACK_SIZE, NULL, REGULATION_TASK_PRIORITY, &regulation_handle);
 }
 
 void setup_channel1(adc1_channel_t input, float target){

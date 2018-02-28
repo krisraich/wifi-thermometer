@@ -1,17 +1,11 @@
 /*
+ * Not used: https://techtutorialsx.com/2017/12/01/esp32-arduino-asynchronous-http-webserver/
  * https://www.arduino.cc/en/Reference/WiFi101BeginAP
  * https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi/src
- * https://github.com/me-no-dev/AsyncTCP
- * 
- * https://techtutorialsx.com/2017/12/01/esp32-arduino-asynchronous-http-webserver/
- * https://github.com/me-no-dev/ESPAsyncWebServer
- * 
- * 
  */
 
 const char HTML_HEAD[] = "<!DOCTYPE html><html><head><title>Grillthermometer</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta http-equiv=\"refresh\" content=\"10\"></head><body><h1>Grillthermometer</h1>";
 const char HTML_FOOTER[] = "<footer>By Kris 2018 &#8226; Pitztaler Grillverein &#8226; <a href=\"https://grillverein.tirol\">grillverein.tirol</a> &#8226; <a href=\"mailto:info@grillverein.tirol\">info@grillverein.tirol</a></footer></body></html>";
-
 
 bool server_is_running = false, server_has_stopped = false;
 
@@ -148,9 +142,7 @@ void webserver_ap_task(void *pvParameter) {
 
 void setup_webserver() {
   server_is_running = true;
-
-  //todo use timer
-  //xTaskCreate(&webserver_ap_task, "webserver_ap_task", FREE_RTOS_STACK_SIZE, NULL, WEBSERVER_TASK_PRIORITY, &webserver_handle);
+  xTaskCreate(&webserver_ap_task, "webserver_ap_task", FREE_RTOS_STACK_SIZE, NULL, WEBSERVER_TASK_PRIORITY, &webserver_handle);
 }
 void stop_webserver() {
   if (DEBUG) Serial.println("Disabling Webserver/Wifi");

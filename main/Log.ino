@@ -5,10 +5,17 @@
 
  void setup_log(){
 
+
+  if(DEBUG){
+    //enable LOG
+    esp_log_level_set("*", ESP_LOG_DEBUG);                    // set all components to ERROR level
+  }else{
+    esp_log_level_set("*", ESP_LOG_ERROR);                    // set all components to ERROR level
+    esp_log_level_set(LOG_TAG_WEBSERVER, ESP_LOG_WARN);       // enable WARN logs from WiFi stack
+    esp_log_level_set(LOG_TAG_TOUCH, ESP_LOG_WARN);           // enable WARN logs from WiFi stack
+  }
   
-  esp_log_level_set("*", ESP_LOG_ERROR);                    // set all components to ERROR level
-  esp_log_level_set(LOG_TAG_WEBSERVER, ESP_LOG_WARN);       // enable WARN logs from WiFi stack
-  esp_log_level_set(LOG_TAG_TOUCH, ESP_LOG_WARN);           // enable WARN logs from WiFi stack
+
  
   ESP_LOGD(LOG_TAG_LOG, "Init Log");
  
