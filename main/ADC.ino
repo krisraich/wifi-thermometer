@@ -48,12 +48,7 @@ void setup_adc(){
   }
 
   //load params
-  current_params = read_regression_params();
-  Serial.println(current_params.param_a);
-  Serial.println(current_params.param_b);
-  Serial.println(current_params.param_c);
-  Serial.println(current_params.param_d);
-  
+  current_params = read_regression_params();  
 }
 
 void clear_serial(){
@@ -81,16 +76,6 @@ void calibrate_adcs(){
       incomingByte = Serial.read();
       delay(1);
   }
-
-  REGRESSION_PARAMETER tmp = {
-    1.1,
-    2.22,
-    3.333,
-    4.4444,
-  };
-
-  save_regression_params(tmp);
-
   
   
   if(incomingByte == -1){
@@ -126,6 +111,17 @@ void calibrate_adcs(){
   }  
 
   //ToDo: read param, and store in eeprom
+
+/*
+  REGRESSION_PARAMETER tmp = {
+    1.1,
+    2.22,
+    3.333,
+    4.4444,
+  };
+
+  save_regression_params(tmp);
+  */
   
 }
 

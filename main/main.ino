@@ -314,9 +314,9 @@ void setup() {
 
   int bootups = setup_deep_sleep();
 
-  setup_adc();
-
   setup_data_store();
+
+  setup_adc();
 
   setup_recorder();
 

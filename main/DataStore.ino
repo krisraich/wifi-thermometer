@@ -52,6 +52,8 @@ void save_regression_params(REGRESSION_PARAMETER params){
   store_float_at_address(CAL_B_ADDRESS, params.param_b);
   store_float_at_address(CAL_C_ADDRESS, params.param_c);
   store_float_at_address(CAL_D_ADDRESS, params.param_d);
+  if (DEBUG) Serial.println("Regression values saved"); 
+  EEPROM.commit();
 }
 
 float get_float_from_address(int address){
@@ -63,10 +65,10 @@ float get_float_from_address(int address){
 }
 
 void store_float_at_address(int address, float value){
-  uint8_t bytes_temp[4];
-  memcpy(bytes_temp, (uint8_t*) (&value), 4);
+  uint8_t buffer_array[4];
+  memcpy(buffer_array, (uint8_t*) (&value), 4);
   for(int i = 0; i < 4; i++){
-    EEPROM.write(address + i, bytes_temp[0]);;
+    EEPROM.write(address + i, buffer_array[i]);
   }
 }
 
