@@ -21,6 +21,8 @@
   USED REPOSITORIES:
     E-Paper: https://github.com/ZinggJM/GxEPD
     Via Librarie manager: Adafruit GFX, AutoPID
+    TCP: https://github.com/me-no-dev/AsyncTCP
+    Webserver: https://github.com/me-no-dev/ESPAsyncWebServer
 
 
   Program behaviour:
@@ -54,7 +56,6 @@
 /////////////////
 
 #define DEBUG                               true
-#define LOG_LOCAL_LEVEL                     ESP_LOG_VERBOSE
 
 
 #define SLEEP_DURATION_SEC                  30 //Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history
@@ -95,9 +96,9 @@
 #define REGULATION_CYCLE_TIME                 mS_TO_S_FACTOR //1 sec?
 
 // Battery stuff
-//#define IGNORE_BATTERY_VOLTAGE              1 //delete for production
+#define IGNORE_BATTERY_VOLTAGE              1 //delete for production
 #define BATTERY_VOLTAGE_ANALOG_IN             ADC1_CHANNEL_0 //PIN VP
-#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1   100800
+#define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1   100900
 #define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2   100500 //verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN 
 #define MINIMUM_BATTERY_VOLTAGE               2.8       //Abschalt Spannung. für Lithium-Ionen-Akku. Tiefentladung bei 2,5V. Minimale Betriebsspannung ESP32 2,3V + 0,1V Dropout vom Regler = 2,4V . Bei 2,8V sollt genügend restkapazität vorhanden sein */
 #define MAX_BATTERY_VOLTAGE                   4.2   //Maximale LiIon Zellenspannung
@@ -291,6 +292,9 @@ void setup() {
     }
   }
 
+  ESP_LOGE("LoggStarting");
+
+
   led_start_blinking();
 
   int bootups = setup_deep_sleep();
@@ -318,7 +322,7 @@ void setup() {
 
   setup_recorder();
 
-//  if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
+  //  if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
   ESP_LOGI(LOG_TAG_MAIN, "Starting '%s' mode", operation_mode_to_string(current_operation_mode));
 
 

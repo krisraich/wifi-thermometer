@@ -1,8 +1,11 @@
 /*
  * https://www.arduino.cc/en/Reference/WiFi101BeginAP
  * https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi/src
+ * https://github.com/me-no-dev/AsyncTCP
  * 
  * https://techtutorialsx.com/2017/12/01/esp32-arduino-asynchronous-http-webserver/
+ * https://github.com/me-no-dev/ESPAsyncWebServer
+ * 
  * 
  */
 
