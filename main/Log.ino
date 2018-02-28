@@ -5,6 +5,7 @@
 
  void setup_log(){
 
+  if(Serial) Serial.setDebugOutput(true);
 
   if(DEBUG){
     //enable LOG
@@ -14,6 +15,7 @@
     esp_log_level_set(LOG_TAG_WEBSERVER, ESP_LOG_WARN);       // enable WARN logs from WiFi stack
     esp_log_level_set(LOG_TAG_TOUCH, ESP_LOG_WARN);           // enable WARN logs from WiFi stack
   }
+
   
 
  

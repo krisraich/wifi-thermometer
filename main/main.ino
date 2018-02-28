@@ -78,7 +78,7 @@
 #define TOUCH_TIME                            3 //time in measuring cycles. 1 Cylce 35ms
 #define MODE_TOUCH_BUTTON                     TOUCH_PAD_NUM3 //GPIO 15 See: https://github.com/espressif/arduino-esp32/blob/master/tools/sdk/include/driver/driver/touch_pad.h
 #define OK_TOUCH_BUTTON                       TOUCH_PAD_NUM4 // GPIO 13 Button für refresh
-#define TOUTCH_THRESHOLD                      0.6 // greater value = more sensitive. Max = 0.99, Min = 0.01
+#define TOUTCH_THRESHOLD                      0.9 // greater value = more sensitive. Max = 0.99, Min = 0.01
 
 //Pin für LoLin / waveshare 2.9
 #define DISPLAY_BUSY                          GPIO_NUM_17 // Display BUSY = any GPIO
@@ -96,7 +96,7 @@
 #define REGULATION_CYCLE_TIME                 mS_TO_S_FACTOR //1 sec?
 
 // Battery stuff
-#define IGNORE_BATTERY_VOLTAGE              1 //delete for production
+#define IGNORE_BATTERY_VOLTAGE              1 //comment or delete for production
 #define BATTERY_VOLTAGE_ANALOG_IN             ADC1_CHANNEL_0 //PIN VP
 #define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1   100900
 #define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2   100500 //verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN 
@@ -112,11 +112,11 @@
 #define MIN_TIME_BETWEEN_REFRESH              1000    // zeit die vergehen muss bevor der benutzer die temperaturen aktualisieren kann (ms)
 #define SHOW_MENU_ON_DISPLAY_TIME             15      // Wie lange soll das Menü auf dem Display angezeigt werden (sec)
 
-#define TOUCH_READ_TASK_PRIORITY              1      //prioritäten direkt proportional (min 1, max 24), webserver braucht die meisten resourcen
-#define WEBSERVER_TASK_PRIORITY               1
-#define REFRESH_TASK_PRIORITY                 1
-#define REGULATION_TASK_PRIORITY              1
-#define AUTO_CLOSE_TASK_PRIORITY              1
+#define TOUCH_READ_TASK_PRIORITY              20      //prioritäten direkt proportional (min 1, max 24), webserver braucht die meisten resourcen
+#define LED_TASK_PRIORITY                     1
+#define REFRESH_TASK_PRIORITY                 10
+#define REGULATION_TASK_PRIORITY              15
+#define AUTO_CLOSE_TASK_PRIORITY              5
 
 #define FREE_RTOS_STACK_SIZE                  4096
 //#define configUSE_TIME_SLICING              1
@@ -201,6 +201,7 @@ const adc1_channel_t ADC_CHANNELS[] {
   ADC1_CHANNEL_6, //PIN A1.6/R4/34
   ADC1_CHANNEL_7  //PIN A1.7/R5/35
 };
+struct REGRESSION_PARAMETER { float param_a; float param_b; float param_c; float param_d; }; 
 
 const touch_pad_t TOUCH_BUTTONS[] {
   static_cast<touch_pad_t>(OK_TOUCH_BUTTON),
@@ -220,9 +221,9 @@ enum OPERATION_MODE {
 };
 
 enum BLINK_FREQUENCY {
-  SLOW = 2,
-  NORMAL = 10,
-  FAST = 20
+  SLOW = 1000,
+  NORMAL = 500,
+  FAST = 250
 };
 
 bool menu_open = false; //menu is on display
@@ -232,7 +233,7 @@ unsigned long last_interaction_since = 0; //time when menu was opend for auto cl
 OPERATION_MODE current_operation_mode;
 OPERATION_MODE selected_operation_mode;
 
-TaskHandle_t webserver_handle = NULL;
+TaskHandle_t led_handle = NULL;
 TaskHandle_t touch_handle = NULL;
 TaskHandle_t regulation_handle = NULL;
 TaskHandle_t refresh_handle = NULL;
@@ -294,15 +295,20 @@ void setup() {
    * Init hardware, which is used every time
    */
    
-  setup_led();
-
   //Initialize serial and wait for port to open:
   if (DEBUG) {
+
+    //led only in debug
+    setup_led();
+    
     Serial.begin(115200);
     while (!Serial) {
       delay(10); // wait for serial port to connect. Needed for native USB port only
     }
   }
+
+
+  setup_log();
 
   led_start_blinking();
 
@@ -331,12 +337,17 @@ void setup() {
   setup_touch();
 
   //todo: check if menu is open
-  if (!menu_open) {
-  
+  if (menu_open) {
+    //goto Loop and until it's closed
+    return;
   }
 
   //if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
   ESP_LOGI(LOG_TAG_MAIN, "Starting '%s' mode", operation_mode_to_string(current_operation_mode));
+
+
+  //opdate on boot
+  update_display();
 
   /*
    * Now check which mode to load,
@@ -349,7 +360,7 @@ void setup() {
     case BT_LE_SLAVE:
       send_data_with_ble();
     case POWER_SAVING:
-        start_power_saving_mode();
+      start_power_saving_mode();
       return;
     case WIFI_SERVER:
       start_wifi_mode();
@@ -359,48 +370,38 @@ void setup() {
 void check_battery_life() {
 #if ! defined(IGNORE_BATTERY_VOLTAGE)
 
-#if defined(SWITCH_TO_POWERSAVE_WHEN_BAT_LOW)
-  if (current_operation_mode == WIFI_SERVER && get_battery_percente() <= SWITCH_TO_POWERSAVE_WHEN_BAT_LOW) {
-    if (DEBUG) Serial.println("Battery is nearly empty.. switchng to POWER_SAVE");
-    save_operation_mode(POWER_SAVING);
-    ESP.restart();
-  }
-#endif
-
-  if (get_battery_voltage() <= MINIMUM_BATTERY_VOLTAGE) {
-    if (DEBUG) Serial.println("Battery is empty... shutting down");
-    show_empty_battery();
-    shutdown_esp();
-  }
+  #if defined(SWITCH_TO_POWERSAVE_WHEN_BAT_LOW)
+    if (current_operation_mode == WIFI_SERVER && get_battery_percente() <= SWITCH_TO_POWERSAVE_WHEN_BAT_LOW) {
+      if (DEBUG) Serial.println("Battery is nearly empty.. switchng to POWER_SAVE");
+      save_operation_mode(POWER_SAVING);
+      ESP.restart();
+    }
+  #endif
+  
+    if (get_battery_voltage() <= MINIMUM_BATTERY_VOLTAGE) {
+      if (DEBUG) Serial.println("Battery is empty... shutting down");
+      show_empty_battery();
+      shutdown_esp();
+    }
 #endif
 }
 
 void send_data_with_ble(){
-  
-}
-
-void start_wifi_mode() {
-  update_display();
-  setup_webserver();
-  setup_regulation();
-  xTaskCreate(&refresh_display, "refresh_display", FREE_RTOS_STACK_SIZE, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
-}
-
-void start_power_saving_mode() {
-
-  if (current_operation_mode == BT_LE_SLAVE) {
-    //search for wifi devices and send data via BLE
-    if (DEBUG) {
+   if (DEBUG) {
       Serial.println("Searching Devices in WiFi Mode");
       setup_bluetooth();
       delay(200);
       Serial.println("Sending Data via Bluetooth Low Energy (BLE)");
     }
+}
 
-  }
+void start_wifi_mode() {
+  setup_regulation();
+  xTaskCreate(&refresh_display, "refresh_display", FREE_RTOS_STACK_SIZE, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
+  setup_webserver();
+}
 
-  update_display();
-
+void start_power_saving_mode() {
   deep_sleep_wake_up_after_time(SLEEP_DURATION_SEC);
   deep_sleep_wake_up_on_touch();
   led_stop_blinking();
@@ -416,11 +417,16 @@ void default_procedure_on_error() {
 
 
 void prepare_to_shutdown() {
-  if (current_operation_mode == WIFI_SERVER) {
-    stop_webserver();
-    stop_regulation();
+
+  /*
+   * Not needed
+   *   if (current_operation_mode == WIFI_SERVER) {
+    //stop_webserver();
+    //stop_regulation();
   }
-  stop_touch();
+  //stop_touch();
+   */
+
 }
 
 
@@ -567,7 +573,7 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
 }
 
 /////////////////
-// Loop - not executed in power saving mode
+// Loop 
 /////////////////
 void loop() {
   delay(100000);

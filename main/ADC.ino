@@ -9,6 +9,9 @@
 
 //#define ADC_ATTENUATION ADC_ATTEN_11db
 
+
+REGRESSION_PARAMETER current_params;
+
 float get_battery_voltage(){
   return get_adc_raw_voltage() * (BATTERY_VOLTAGE_DEVIDING_RESISTOR_1 + BATTERY_VOLTAGE_DEVIDING_RESISTOR_2) / BATTERY_VOLTAGE_DEVIDING_RESISTOR_2;
 } 
@@ -43,18 +46,23 @@ void setup_adc(){
     Serial.print("Setup ADC, Battery voltage: ");
     Serial.println(get_battery_voltage());
   }
+
+  //load params
+  current_params = read_regression_params();
+  Serial.println(current_params.param_a);
+  Serial.println(current_params.param_b);
+  Serial.println(current_params.param_c);
+  Serial.println(current_params.param_d);
   
 }
 
+void clear_serial(){
+  while(Serial.available())
+    Serial.read();
+}
 
 void calibrate_adcs(){
-  if(DEBUG) Serial.println("Hold calibration Button for 5 Seconds for calibration");
-
-  delay(mS_TO_S_FACTOR);
-  if(! button_has_been_pressed(4000, ON_BOARD_BUTTON, ON_BOARD_BUTTON_PULLDOWN_MODE)){
-    if(DEBUG) Serial.println("Aborting... load normal routine");
-    return;
-  }
+  
 
   if (!Serial) {
     Serial.begin(115200);
@@ -63,24 +71,52 @@ void calibrate_adcs(){
     }
   }
 
+
+  if(DEBUG) Serial.println("Waiting for calibration script...");
+
+  int incomingByte = -1; 
+
+  //wait for 1 sec
+  for (int i = 0; i < 1000 && Serial && incomingByte == -1; i++){
+      incomingByte = Serial.read();
+      delay(1);
+  }
+
+  REGRESSION_PARAMETER tmp = {
+    1.1,
+    2.22,
+    3.333,
+    4.4444,
+  };
+
+  save_regression_params(tmp);
+
+  
+  
+  if(incomingByte == -1){
+    if(DEBUG) Serial.println("No input. Continue loading normal routine");
+    return;
+  }else{
+    clear_serial();
+    Serial.println("true");
+  }
+
   //set powersave mode (failsafe)
   save_operation_mode(POWER_SAVING);
   
-  Serial.println("Now in calibration mode!");
   set_blink_frequency(FAST);
   print_big_text("CALIBRATI0N!1", &FreeMonoBold18pt7b); 
   
   
-  int incomingByte; 
-  while(Serial){
+  
+  while(Serial && incomingByte != 3){ // 3 = end of text
     //wait until something arrives
     do{
       incomingByte = Serial.read();
       delay(1);
     }while(incomingByte == -1);
 
-    while(Serial.available())
-      Serial.read();
+    clear_serial();
 
     for (adc1_channel_t current_channel : ADC_CHANNELS){      
       Serial.print(adc1_get_raw(current_channel));
@@ -88,6 +124,9 @@ void calibrate_adcs(){
     }
     Serial.println(); 
   }  
+
+  //ToDo: read param, and store in eeprom
+  
 }
 
 

@@ -13,9 +13,6 @@
 #define MINUMUM_TOUCH_VALUE 7000 // if user holds a touchpad while settig the thresholds it falsifies the value
 
 int s_pad_activated[TOUCH_PAD_MAX];
-bool touch_is_running = false;
-bool touch_has_stopped = false;
-//portMUX_TYPE touch_mutex = portMUX_INITIALIZER_UNLOCKED;
 
 /*
   Read values sensed at all available touch pads.
@@ -37,7 +34,7 @@ void tp_set_thresholds(void){
 
     touch_value = max(touch_value, MINUMUM_TOUCH_VALUE);
     
-    //if (DEBUG) Serial.println("touch value: " + String(touch_value));
+    if (DEBUG) Serial.println("touch value: " + String(touch_value));
     
     //set interrupt threshold.
     ESP_ERROR_CHECK(touch_pad_set_thresh(current_touch, touch_value * TOUTCH_THRESHOLD));
@@ -65,7 +62,7 @@ void tp_set_thresholds(void){
  */
 void tp_read_task(void *pvParameter){
   
-  while (touch_is_running) {
+  while (true) {
     for (touch_pad_t current_touch : TOUCH_BUTTONS){
       if (s_pad_activated[current_touch] >= TOUCH_TIME * DECAYING_FAKTOR) {
 
@@ -82,11 +79,8 @@ void tp_read_task(void *pvParameter){
         //portEXIT_CRITICAL_ISR(&touch_mutex);
       }
     }
-    
     vTaskDelay(25);
   }
-  touch_has_stopped = true;
-  vTaskDelete( NULL );
 }
 
 /*
@@ -145,8 +139,6 @@ void setup_touch(){
   // Register touch interrupt ISR
   touch_pad_isr_register(tp_rtc_intr, NULL);
 
-
-  touch_is_running = true;
   
   // Start a task to show what pads have been touched
   xTaskCreate(&tp_read_task, "touch_pad_read_task", FREE_RTOS_STACK_SIZE, NULL, TOUCH_READ_TASK_PRIORITY, &touch_handle);
@@ -160,10 +152,4 @@ void setup_touch(){
     touch_button_pressed(get_wakeup_toch(), true);
   }
  
-}
-
-void stop_touch() {
-  if (DEBUG) Serial.println("Disabling Touch");
-  touch_is_running = false;
-  //while(! touch_has_stopped)delay(10);
 }

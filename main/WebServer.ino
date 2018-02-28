@@ -38,9 +38,15 @@ void sending_favicon(WiFiClient &client){
   }
 }
 
-void webserver_ap_task(void *pvParameter) {
+void setup_webserver() {
+  //server_is_running = true;
+  //xTaskCreate(&webserver_ap_task, "webserver_ap_task", FREE_RTOS_STACK_SIZE, NULL, WEBSERVER_TASK_PRIORITY, &webserver_handle);
+
+
+  AsyncWebServer server(80);
 
   if (DEBUG) Serial.println("Setup Access point");
+
 
 #if defined(WIFI_AP_PASSWORD)
   WiFi.softAP(WIFI_AP_SSID, WIFI_AP_PASSWORD);
@@ -51,6 +57,7 @@ void webserver_ap_task(void *pvParameter) {
   IPAddress myIP;
   // local_ip,   gateway,   subnet
   do{
+    break;
      WiFi.softAPConfig(Ip, Ip, NMask);
      myIP = WiFi.softAPIP();
      if(myIP == Ip) break;
@@ -64,89 +71,14 @@ void webserver_ap_task(void *pvParameter) {
     Serial.println("Starting Webserver");
   }
 
-  WiFiServer web_server(80);
-  web_server.begin();
 
-  char linebuf[80];
-  int charcount = 0;
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", "Hello World");
+  });
 
-  while (server_is_running) {
-    // listen for incoming clients
-    WiFiClient client = web_server.available();
-    if (client) {
-      
-      if (DEBUG) {
-        IPAddress clientIP = client.remoteIP();
-        Serial.print("New client with IP: ");
-        Serial.println(clientIP);
-      }
-      
-      memset(linebuf, 0, sizeof(linebuf));
-      charcount = 0;
-      // an http request ends with a blank line
-      boolean currentLineIsBlank = true;
-      while (client.connected() && server_is_running) {
-        if (client.available()) {
-          
-          char c = client.read(); //read byte for byte...
-          //Serial.write(c);
-          //read char by char HTTP request
-          linebuf[charcount] = c;
-          if (charcount < sizeof(linebuf) - 1) charcount++;
-          
-          // if you've gotten to the end of the line (received a newline
-          // character) and the line is blank, the http request has ended,
-          // so you can send a reply
-          if (c == '\n' && currentLineIsBlank) {
+  //bug?
+  //server.begin();
 
-            client.println("HTTP/1.1 200 OK");
-            client.println("Connection: close");
-            
-            if (strstr(linebuf, "GET /favicon.ico") > 0) {
-              Serial.println("Sending favicon");
-              sending_favicon(client);
-            }else{
-              Serial.println("Sending website");
-              sending_html(client);
-            }
-           
-            //MUST flush data... otherwise no output
-            client.flush();
-            break;
-          }
-          if (c == '\n') {
-            // you're starting a new line
-            currentLineIsBlank = true;
-
-          } else if (c != '\r') {
-            // you've gotten a character on the current line
-            currentLineIsBlank = false;
-          }
-        }
-      }
-      // give the web browser time to receive the data
-      vTaskDelay(1 / portTICK_PERIOD_MS);
-
-      // close the connection:
-      client.stop();
-      //if (DEBUG) Serial.println("client processed");
-    }
-  }
-  //disable wifi
   
-  WiFi.mode(WIFI_OFF);
-  server_has_stopped = true;
-  vTaskDelete( NULL );
-}
-
-
-void setup_webserver() {
-  server_is_running = true;
-  xTaskCreate(&webserver_ap_task, "webserver_ap_task", FREE_RTOS_STACK_SIZE, NULL, WEBSERVER_TASK_PRIORITY, &webserver_handle);
-}
-void stop_webserver() {
-  if (DEBUG) Serial.println("Disabling Webserver/Wifi");
-  server_is_running = false;
-  //while(! server_has_stopped)delay(10);
 }
 

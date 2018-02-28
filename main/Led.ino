@@ -7,37 +7,44 @@
 
 
 bool led_powerd = false;
-hw_timer_t * timer = NULL;
+bool led_blink = false;
+BLINK_FREQUENCY current; 
 
-void IRAM_ATTR toogle_led(){
-  if(led_powerd)
-    led_off();
-  else
-    led_on(); 
+
+void led_task(void *pvParameter){
+
+  while(true){
+    if(led_blink){
+      if(led_powerd){
+        led_off();
+      }else{
+         led_on();
+      }
+    }
+    vTaskDelay(current / portTICK_PERIOD_MS);
+  }
+  
 }
 
+
 void set_blink_frequency(BLINK_FREQUENCY frequency){
-  timerAlarmWrite(timer, uS_TO_S_FACTOR / frequency , true);
+  current = frequency;
 }
 
 void setup_led(){
   pinMode(ON_BOARD_LED, OUTPUT);
-  led_on();
-  timer = timerBegin(0, 80, true); //timer id 0 bis 3, 80 = devider
-  timerAttachInterrupt(timer, &toogle_led, true);
   set_blink_frequency(NORMAL);
-  
+  led_off();
+  xTaskCreate(&led_task, "led_task", FREE_RTOS_STACK_SIZE, NULL, LED_TASK_PRIORITY, &led_handle);
 }
 
 void led_start_blinking(){
-  if(DEBUG) Serial.println("Start LED blinking");
+  led_blink = true;
   led_on();
-  timerAlarmEnable(timer);
 }
 
 void led_stop_blinking(){
-  if(DEBUG) Serial.println("Stop LED blinking");
-  timerEnd(timer);
+  led_blink = false;
   led_off();
 }
 
