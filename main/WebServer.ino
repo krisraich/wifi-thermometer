@@ -59,10 +59,13 @@ void setup_webserver() {
   });
 
   //favicon
-  server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/favicon.png", HTTP_GET, [](AsyncWebServerRequest *request){
     AsyncWebServerResponse *response = request->beginResponse_P(200, "image/png", favicon_png, favicon_png_len);
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
+  });
+  server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->redirect("/favicon.png");
   });
 
   server.begin();
