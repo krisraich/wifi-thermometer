@@ -44,6 +44,14 @@ static OPERATION_MODE cycle_through_modes(OPERATION_MODE operation_mode){
   }
 }
 
+static int get_index_of_adc_array(adc1_channel_t needle){
+  for(int i = 0; i < count_adc_channels(); i++){
+    if(ADC_CHANNELS[i] == needle){
+      return i;
+    }
+  }
+  
+}
  
 
 

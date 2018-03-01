@@ -49,9 +49,14 @@ void setup_webserver() {
       root["battery"] = get_battery_percente();
       
       JsonObject& temps = root.createNestedObject("temps");
-
+      JsonArray& history = root.createNestedArray("history");
+      
       for (adc1_channel_t current_channel : ADC_CHANNELS){
-        temps[String(current_channel)] = get_temperature_from_channel(current_channel);      
+        temps[String(current_channel)] = get_temperature_from_channel(current_channel); 
+
+        JsonObject& current_history = history.createNestedObject();
+        JsonArray& history_array = current_history.createNestedArray(String(current_channel));
+        history_json(current_channel, &history_array); 
       }
       
       root.printTo(*response);

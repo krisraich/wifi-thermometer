@@ -17,7 +17,6 @@
 
   Dev Notes:
     Dev Board: Pin6 digital out = Error
-  yyx yxsxsxsxs
   USED REPOSITORIES:
     E-Paper: https://github.com/ZinggJM/GxEPD
     WebServer https://github.com/me-no-dev/ESPAsyncWebServer & https://github.com/me-no-dev/AsyncTCP
@@ -61,6 +60,7 @@
 
 #define SLEEP_DURATION_SEC                  30 //Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history
 #define TEMPERATUR_HISTORY_SAMPLE_RATIO     2 // SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)
+#define TEMPERATUR_HISTORY_VALUES           296 //294 Pixel per display
 
 #define WIFI_AP_SSID                        "ESP32"         //Hotspot Wlan SSID
 //#define WIFI_AP_PASSWORD                  "TestTest123"  //Hotspot Wlan Passwort, Auskommentieren für offenen Hotspot
@@ -185,6 +185,10 @@
 
 //regulation
 #include <AutoPID.h>
+
+//recorder
+#include <CircularBuffer.h>
+
 
 //handy functions
 #define min(a,b) ((a)<(b)?(a):(b));
