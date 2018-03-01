@@ -78,12 +78,7 @@ public class BinToCArray {
     }
     
     private static String format_filename (Path path) {
-        String str = path.toString();
-        int pos = str.lastIndexOf(".");
-        if(pos == -1 ) return str;
-        
-        return str.substring(0, pos) + "_" + str.substring(pos+1, str.length());
-        
+        return path.toString().replace(".", "_").replace("-", "_");
     }
     
 }

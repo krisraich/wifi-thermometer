@@ -3,6 +3,7 @@
  * https://arduinojson.org/api/
  * https://www.arduino.cc/en/Reference/WiFi101BeginAP
  * https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi/src
+ * https://getbootstrap.com/docs/4.0/components/alerts/
  */
 
 void setup_webserver() {
@@ -64,8 +65,23 @@ void setup_webserver() {
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
+  
   server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
     request->redirect("/favicon.png");
+  });
+
+  //bootstrap
+  server.on("/bootstrap.css", HTTP_GET, [](AsyncWebServerRequest *request){
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/css", bootstrap_min_css, bootstrap_min_css_len);
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
+  });
+
+  //jquery
+  server.on("/jquery.js", HTTP_GET, [](AsyncWebServerRequest *request){
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "application/javascript", jquery_3_3_1_min_js, jquery_3_3_1_min_js_len);
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
   });
 
   server.begin();

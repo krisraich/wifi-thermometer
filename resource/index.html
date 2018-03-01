@@ -5,62 +5,108 @@
 		<meta charset="utf-8">
 		<meta http-equiv="x-ua-compatible" content="ie=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="WiFi Thermometer for ESP32">
+		<meta name="author" content="Kris 2018">
 
 		<title>Grillthermometer</title>
 
 		<link rel="shortcut icon" href="/favicon.png">
 		<link rel="icon" type="image/png" href="/favicon.png" sizes="256x256">
 		  
-		<style>
+		 <link href="/bootstrap.css" rel="stylesheet">
+		 <style>
+			body {
+			  padding-top: 3.5rem;
+			}
+			.footer {
+				padding-top: 1.5rem;
+				color: #777;
+				border-top: .05rem solid #e5e5e5;
+			}
+			#tempTarget{
+				list-style-type: none;
+				padding: 15px;
+			}
+			#tempTarget li {
+				margin: 3px 0px;
+			}
+		 </style>
 		  
-		</style>
-	  
 	</head>
 	<body>
+		<div class="container">
+			<div class="header clearfix">
+				<nav>
+					<ul class="nav nav-pills float-right">
+						<li class="nav-item">
+							<a class="nav-link active" href="#" onclick="updateTemps();">Refresh</a>
+						</li>
+					</ul>
+				</nav>
+				<h1 class="text-muted">WiFi Thermo</h1>
+			</div>
+			
+			<div id="warn-no-connection" class="alert alert-danger" role="alert" style="display: none; margin: 25px 0 20px;">
+				Can't connect to Thermometer!
+			</div>
+			  
+		   <div class="row">
+				<div class="col-sm-6">
+					<hr>
+					<h2>Temps</h2>
+					<ul id="tempTarget" class="jumbotron"></ul>
+				</div>
 
-		<h1>Grillthermometer</h1>
-
-		<div id="tempTarget">
-		</div>
-	  
-		<p>Batterie: <strong id="battery">?</strong>%</p>
-	  
-		<footer>
-			By Kris 2018 &#8226; Pitztaler Grillverein &#8226; <a href=\"https://grillverein.tirol\">grillverein.tirol</a> &#8226; <a href=\"mailto:info@grillverein.tirol\">info@grillverein.tirol</a>
+				<div class="col-sm-6">
+					<hr>
+					<h2>Stats</h2>
+					<div class="jumbotron">
+						<p>todo</p>
+					</div>
+				</div>
+				<div class="col-12">
+					<hr>
+					<h3>Battery</h3>
+					<div class="progress">
+						<div id="battery" class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+					</div>
+					
+				</div>
+			</div>
+			  
+		<footer class="footer">
+			<p>&copy; By Kris 2018 &#8226; Pitztaler Grillverein &#8226; <a href="https://grillverein.tirol">grillverein.tirol</a> &#8226; <a href="mailto:info@grillverein.tirol">info@grillverein.tirol</a></p>
 		</footer>
+
+		</div> <!-- /container -->
+		
+		<script src="/jquery.js"></script>
 		
 		<script>
 		
 		var lastResponse;
 		
-		function httpGet(theUrl){
-			var xmlHttp = new XMLHttpRequest();
-			xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
-			xmlHttp.send( null );
-			return xmlHttp.responseText;
-		}
-		
 		function updateTemps(){
-			var response = httpGet("/getTemps");
-			response = JSON.parse(response);
-			//console.log(temps);
-			if(response.read){
-				lastResponse = response;
-				var html = "";
-				for (var channel in response.temps) {
-					html += "<p>Kanal: " + channel + ": <strong>" + response.temps[channel] + "</strong></p>";
+			$.get( "/getTemps", function( response ) {
+				if(response.read){
+					$("#warn-no-connection").hide();
+					lastResponse = response;
+					var html = "";
+					for (var channel in response.temps) {
+						html += "<li>Kanal " + channel + ": <strong>" + response.temps[channel] + "</strong></li>";
+					}
+					$("#tempTarget").html(html);
+					var bat = Math.min(response.battery, 100) + "%";
+					$("#battery").width(bat).text(bat);
 				}
-				document.getElementById("tempTarget").innerHTML = html;
-				document.getElementById("battery").innerHTML = response.battery;
-			}
-
+			}).fail(function() {
+				$("#warn-no-connection").show();
+			});
 		}
 		
 		updateTemps();
 		setInterval(updateTemps, 10000);
 		
 		</script>
-		
 	</body>
-
 </html>

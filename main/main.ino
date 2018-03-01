@@ -176,6 +176,8 @@
 #include "AsyncJson.h"
 #include "ArduinoJson.h"
 #include "res/bin_favicon.h"
+#include "res/bin_bootstrap4.h"
+#include "res/bin_jquery3.h"
 #include "res/bin_index_html.h"
 
 //EEPROM
