@@ -44,11 +44,12 @@
     Normal operation: ~ 42mA
     Wifi Server: ~150mA
 
-   Bugs:
-    1. Guru Meditation Error when switching modes: mostly WIFI_SERVER to POWER_SAVING (Cache disabled but cached memory region accessed)
-    2. sometimes a timeout (Busy) occurs with FreeRTOS. tune priorities!
+   Bugs / ToDo:
+    1. Translation
+    2. SHUTDOWN wake up on touch?
     3. Test PID regulation
     4. write propper documentation
+    5. Set WiFi password via Serial
 */
 
 /////////////////
@@ -208,7 +209,11 @@ const IPAddress Ip(192, 168, 1, 1) ;
 const IPAddress NMask(255, 255, 255, 0);
 
 
-struct ADC_CHANNEL {String name;  adc1_channel_t channel; uint8_t index; };  //index used for recoreder
+struct ADC_CHANNEL {
+  String name;  
+  adc1_channel_t channel; 
+  uint8_t index; //index used for recoreder
+};  
 
 //Analog in for LoLin
 const ADC_CHANNEL ADC_CHANNELS[] {

@@ -13,6 +13,10 @@
 #define CAL_C_ADDRESS 18
 #define CAL_D_ADDRESS 24
 
+
+#define WIFI_PWD_LEN_ADDRESS 30
+
+
 void setup_data_store(){
   EEPROM.begin(EEPROM_SIZE);
   if (DEBUG) Serial.println("Init EEPROM"); 
@@ -71,4 +75,34 @@ void store_float_at_address(int address, float value){
     EEPROM.write(address + i, buffer_array[i]);
   }
 }
+
+void store_wifi_password(String password){
+  int len = password.length();
+  byte buffer_array[len];
+  password.getBytes(buffer_array, len);
+  for(int i = 0; i < len; i++){
+    EEPROM.write(WIFI_PWD_LEN_ADDRESS + 1 + i, buffer_array[i]);
+  }
+  EEPROM.commit();
+}
+
+bool has_wifi_password(){
+  return EEPROM.read(WIFI_PWD_LEN_ADDRESS) > 0;
+}
+void delete_wifi_password(){
+  EEPROM.write(WIFI_PWD_LEN_ADDRESS, 0);
+  EEPROM.commit();
+}
+
+String get_wifi_password(){
+  int len = EEPROM.read(WIFI_PWD_LEN_ADDRESS);
+  String out = "";
+  byte buffer_array[len];
+  for(int i = 0; i < len; i++){
+    //todo
+    //out += String(EEPROM.read(WIFI_PWD_LEN_ADDRESS + 1 + i));
+  }
+  return out;
+}
+
 
