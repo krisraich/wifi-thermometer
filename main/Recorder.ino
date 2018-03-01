@@ -15,11 +15,13 @@ void setup_recorder(){
   if (DEBUG) Serial.println("Init Recoreder"); 
 
   //populate recorder
+  /*
   for(int i = 0; i < DATA_CHANNELS; i++){
     for(int j = 0; j < TEMPERATUR_HISTORY_VALUES; j++){
       DATA_HISTORY[i].unshift((float)random(20, 150));
     }
   }
+  */
   
 }
 
@@ -28,15 +30,15 @@ void record_temperatures(){
     if (DEBUG) Serial.println("Saving temperatures on cycle " + String(current_cycle)); 
 
    
-    for (adc1_channel_t current_channel : ADC_CHANNELS){  
-      DATA_HISTORY[get_index_of_adc_array(current_channel)].unshift(get_temperature_from_channel(current_channel));   
+    for (ADC_CHANNEL current_channel : ADC_CHANNELS){  
+      DATA_HISTORY[current_channel.index].unshift(get_temperature_from_channel(current_channel.channel));   
     }
   }
 }
 
 //not pretty but meh
-void history_json(adc1_channel_t channel, JsonArray *target){
-  CircularBuffer<float, TEMPERATUR_HISTORY_VALUES> *current = &DATA_HISTORY[get_index_of_adc_array(channel)];
+void history_json(ADC_CHANNEL channel, JsonArray *target){
+  CircularBuffer<float, TEMPERATUR_HISTORY_VALUES> *current = &DATA_HISTORY[channel.index];
   for(int i = 0; i < current->size(); i++){
     target->add((*current)[i]); 
   }

@@ -43,20 +43,26 @@ void setup_webserver() {
   server.on("/getTemps", HTTP_GET, [](AsyncWebServerRequest *request){
       AsyncResponseStream *response = request->beginResponseStream("text/json");
       DynamicJsonBuffer jsonBuffer;
+
+      //root element
       JsonObject &root = jsonBuffer.createObject();
-      root["read"] = true;
-
       root["battery"] = get_battery_percente();
-      
-      JsonObject& temps = root.createNestedObject("temps");
-      JsonArray& history = root.createNestedArray("history");
-      
-      for (adc1_channel_t current_channel : ADC_CHANNELS){
-        temps[String(current_channel)] = get_temperature_from_channel(current_channel); 
 
-        JsonObject& current_history = history.createNestedObject();
-        JsonArray& history_array = current_history.createNestedArray(String(current_channel));
-        history_json(current_channel, &history_array); 
+      //create channels array in root element
+      JsonArray& channels = root.createNestedArray("channels");
+      
+      for (ADC_CHANNEL channel : ADC_CHANNELS){
+
+        if(! channel_is_active(channel.channel)) continue;
+        
+        //create single channel object in channels
+        JsonObject& current_channel = channels.createNestedObject();
+        current_channel["name"] = channel.name;
+        current_channel["temperature"] = get_temperature_from_channel(channel.channel);
+
+        //create channel history array in current channel
+        JsonArray& channel_history = current_channel.createNestedArray("history");
+        history_json(channel, &channel_history); 
       }
       
       root.printTo(*response);
@@ -89,6 +95,14 @@ void setup_webserver() {
     request->send(response);
   });
 
+  //chart js
+  server.on("/chart.js", HTTP_GET, [](AsyncWebServerRequest *request){
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "application/javascript", chart_bundle_min_js, chart_bundle_min_js_len);
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
+  });
+
+  
   server.begin();
   
 }

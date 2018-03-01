@@ -175,10 +175,14 @@
 #include <ESPAsyncWebServer.h>
 #include "AsyncJson.h"
 #include "ArduinoJson.h"
+
+//includ res
 #include "res/bin_favicon.h"
 #include "res/bin_bootstrap4.h"
 #include "res/bin_jquery3.h"
+#include "res/bin_chart.h"
 #include "res/bin_index_html.h"
+
 
 //EEPROM
 #include "EEPROM.h"
@@ -203,14 +207,19 @@
 const IPAddress Ip(192, 168, 1, 1) ;
 const IPAddress NMask(255, 255, 255, 0);
 
+
+struct ADC_CHANNEL {String name;  adc1_channel_t channel; uint8_t index; };  //index used for recoreder
+
 //Analog in for LoLin
-const adc1_channel_t ADC_CHANNELS[] {
-  ADC1_CHANNEL_3, //PIN VN
-  ADC1_CHANNEL_4, //PIN A1.4/R9/32
-  ADC1_CHANNEL_5, //PIN A1.5/R8/33
-  ADC1_CHANNEL_6, //PIN A1.6/R4/34
-  ADC1_CHANNEL_7  //PIN A1.7/R5/35
+const ADC_CHANNEL ADC_CHANNELS[] {
+  {"A", ADC1_CHANNEL_3, 0},  //PIN VN
+  {"B", ADC1_CHANNEL_4, 1},  //PIN A1.4/R9/32
+  {"C", ADC1_CHANNEL_5, 2},  //PIN A1.5/R8/33
+  {"D", ADC1_CHANNEL_6, 3},  //PIN A1.6/R4/34
+  {"E", ADC1_CHANNEL_7, 4}   //PIN A1.7/R5/35
 };
+
+
 struct REGRESSION_PARAMETER { float param_a; float param_b; float param_c; float param_d; }; 
 
 const touch_pad_t TOUCH_BUTTONS[] {

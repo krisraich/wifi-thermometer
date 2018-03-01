@@ -53,8 +53,8 @@ void update_display(){
   //taskENTER_CRITICAL(&display_mutex);
   if(DEBUG){
     Serial.println("----- Display Temps ------");
-    for (adc1_channel_t current_channel : ADC_CHANNELS){      
-      Serial.println("Sensor input No. " + String(current_channel) + " is " + String(get_temperature_from_channel(current_channel)));
+    for (ADC_CHANNEL current_channel : ADC_CHANNELS){      
+      Serial.println("Sensor " + current_channel.name + " has " + String(get_temperature_from_channel(current_channel.channel)));
     }
     Serial.println("Battery Voltage is: " + String(get_battery_voltage()));
     Serial.println("--------------------------");
@@ -78,17 +78,17 @@ void update_display(){
   int x;
   int y;
   int i = 1;
-  for (adc1_channel_t current_channel : ADC_CHANNELS){
+  for (ADC_CHANNEL current_channel : ADC_CHANNELS){
     // selecting outputbox
     getBoxCords(i, x, y);
     // draw temp. icon
     display.drawBitmap(x+4, y+lineheight+20, icon_temperatur, 24, 24, GxEPD_BLACK);
     // Heading
     display.setCursor(x+2, y+lineheight); // <-- x --> , y^
-    display.print("Temp-" + String(current_channel));
+    display.print("Temp-" + current_channel.name);
     // Temperatur
     display.setCursor(x+30, y+lineheight+30); // <-- x --> , y^
-    display.print(String(get_temperature_from_channel(current_channel)));
+    display.print(String(get_temperature_from_channel(current_channel.channel)));
     // increment box counter for loop
     i++;
   }

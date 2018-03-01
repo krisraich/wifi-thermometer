@@ -24,6 +24,11 @@ float get_adc_raw_voltage(){
   return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
 }
 
+bool channel_is_active(adc1_channel_t current_channel){
+  int reading = adc1_get_raw(current_channel);
+  return !(reading < 1 || reading > 4095);
+}
+
 float get_temperature_from_channel(adc1_channel_t current_channel){
   return adc1_get_raw(current_channel) / 100; //dummy
 }
@@ -36,8 +41,8 @@ void setup_adc(){
   adc1_config_width(ADC_WIDTH_12Bit);
 
   #if defined(ADC_ATTENUATION) && ADC_ATTENUATION !=  ADC_ATTEN_11db //only set when different from default
-    for (adc1_channel_t current_channel : ADC_CHANNELS){
-      adc1_config_channel_atten(current_channel, ADC_ATTENUATION);
+    for (ADC_CHANNEL current_channel : ADC_CHANNELS){
+      adc1_config_channel_atten(current_channel.channel, ADC_ATTENUATION);
     }
   #endif
 
@@ -103,8 +108,8 @@ void calibrate_adcs(){
 
     clear_serial();
 
-    for (adc1_channel_t current_channel : ADC_CHANNELS){
-      Serial.print(adc1_get_raw(current_channel));
+    for (ADC_CHANNEL current_channel : ADC_CHANNELS){
+      Serial.print(adc1_get_raw(current_channel.channel));
       Serial.print(" ");
     }
     Serial.println();
