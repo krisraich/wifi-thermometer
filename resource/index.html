@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="de">
+
+	<head>
+	  <meta charset="utf-8">
+	  <meta http-equiv="x-ua-compatible" content="ie=edge">
+	  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	  <title>Grillthermometer</title>
+
+	  <link rel="icon" href="/favicon.ico">
+	  
+	  <style>
+	  
+	  </style>
+	  
+	</head>
+	<body>
+
+		<h1>Grillthermometer</h1>
+
+		<div id="tempTarget">
+		</div>
+	  
+	  
+		<footer>
+			By Kris 2018 &#8226; Pitztaler Grillverein &#8226; <a href=\"https://grillverein.tirol\">grillverein.tirol</a> &#8226; <a href=\"mailto:info@grillverein.tirol\">info@grillverein.tirol</a>
+		</footer>
+		
+		<script>
+		
+		var lastResponse;
+		
+		function httpGet(theUrl){
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+			xmlHttp.send( null );
+			return xmlHttp.responseText;
+		}
+		
+		function updateTemps(){
+			var response = httpGet("/getTemps");
+			response = JSON.parse(response);
+			//console.log(temps);
+			if(response.read){
+				lastResponse = response;
+				var html = "";
+				for (var channel in response.temps) {
+					html += "<p>Channel: " + channel + ": <strong>" + response.temps[channel] + "</strong></p>";
+				}
+				document.getElementById("tempTarget").innerHTML = html;
+			}
+
+		}
+		
+		updateTemps();
+		setInterval(updateTemps, 10000);
+		
+		</script>
+		
+	</body>
+
+</html>

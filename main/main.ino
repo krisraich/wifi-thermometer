@@ -20,7 +20,8 @@
   yyx yxsxsxsxs
   USED REPOSITORIES:
     E-Paper: https://github.com/ZinggJM/GxEPD
-    Via Librarie manager: Adafruit GFX, AutoPID
+    WebServer https://github.com/me-no-dev/ESPAsyncWebServer & https://github.com/me-no-dev/AsyncTCP
+    Via Librarie manager: Adafruit GFX, AutoPID, ArduinoJson
 
 
   Program behaviour:
@@ -172,7 +173,10 @@
 #include <FS.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include "AsyncJson.h"
+#include "ArduinoJson.h"
 #include "res/bin_favicon.h"
+#include "res/bin_index_html.h"
 
 //EEPROM
 #include "EEPROM.h"
@@ -249,6 +253,11 @@ TaskHandle_t menu_close_handle = NULL;
 
 GxIO_Class io(SPI, DISPLAY_CS, DISPLAY_DC, DISPLAY_RST);  //SPI,SS,DC,RST
 GxGDEH029A1 display(io, DISPLAY_RST, DISPLAY_BUSY);  //io,RST,BUSY
+
+/////////////////
+// Init Display
+/////////////////
+AsyncWebServer server(80);
 
 /////////////////
 // maintenances tasks

@@ -1,10 +1,12 @@
-package bintocarray;
+package WebServer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import static java.nio.file.StandardOpenOption.*;
+import java.util.zip.GZIPOutputStream;
 
 /**
  *
@@ -23,19 +25,32 @@ public class BinToCArray {
         }
         
         File output = new File(args[1]);
-        Path input = new File(args[0]).toPath();
+        File input = new File(args[0]);
+        Path path = input.toPath();
 
-        byte[] binary = Files.readAllBytes(input);
+        byte[] binary = Files.readAllBytes(path);
+        
+        
+        //gzip bin
+        binary = compressArray(binary);
+        String fileName = format_filename(path.getFileName());
         
         StringBuilder sb = new StringBuilder();
         sb.append("/*\n");
         sb.append(" *   ");
-        sb.append(input.getFileName());
-        sb.append("\n");
+        sb.append(path.getFileName());
+        sb.append(" (uncompressed size: ");
+        sb.append(input.length());
+        sb.append(" bytes)\n");
         sb.append(" */\n");
-        sb.append("const uint8_t bin_image[");
+        sb.append("#define ");
+        sb.append(fileName);
+        sb.append("_len ");
         sb.append(binary.length);
-        sb.append("] PROGMEM = { \n");
+        sb.append("\n");
+        sb.append("const uint8_t ");
+        sb.append(fileName);
+        sb.append("[] PROGMEM = { \n");
 
         int currentHex = 0;
         for (byte b : binary) {
@@ -47,8 +62,28 @@ public class BinToCArray {
         sb.deleteCharAt(sb.length()-1);
         sb.append("\n};");
         
-        //System.out.println(sb.toString());
-        
         Files.write(output.toPath(), sb.toString().getBytes(), WRITE, CREATE, TRUNCATE_EXISTING);
     }
+    
+    
+    private static byte[] compressArray(byte[] input) throws IOException{
+        
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream(input.length);
+        GZIPOutputStream zipStream = new GZIPOutputStream(byteStream);
+        zipStream.write(input);
+        zipStream.close();
+        byteStream.close();
+        
+        return byteStream.toByteArray();
+    }
+    
+    private static String format_filename (Path path) {
+        String str = path.toString();
+        int pos = str.lastIndexOf(".");
+        if(pos == -1 ) return str;
+        
+        return str.substring(0, pos) + "_" + str.substring(pos+1, str.length());
+        
+    }
+    
 }

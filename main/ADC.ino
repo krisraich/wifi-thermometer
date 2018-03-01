@@ -14,15 +14,15 @@ REGRESSION_PARAMETER current_params;
 
 float get_battery_voltage(){
   return get_adc_raw_voltage() * (BATTERY_VOLTAGE_DEVIDING_RESISTOR_1 + BATTERY_VOLTAGE_DEVIDING_RESISTOR_2) / BATTERY_VOLTAGE_DEVIDING_RESISTOR_2;
-} 
+}
 
 float get_adc_raw_voltage(){
   int reading = adc1_get_raw(BATTERY_VOLTAGE_ANALOG_IN);
-  
+
   if(reading < 1 || reading >= 4095) return -1;
   //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
   return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
-} 
+}
 
 float get_temperature_from_channel(adc1_channel_t current_channel){
   return adc1_get_raw(current_channel) / 100; //dummy
@@ -34,10 +34,10 @@ uint8_t get_battery_percente(){
 
 void setup_adc(){
   adc1_config_width(ADC_WIDTH_12Bit);
-  
+
   #if defined(ADC_ATTENUATION) && ADC_ATTENUATION !=  ADC_ATTEN_11db //only set when different from default
-    for (adc1_channel_t current_channel : ADC_CHANNELS){    
-      adc1_config_channel_atten(current_channel, ADC_ATTENUATION); 
+    for (adc1_channel_t current_channel : ADC_CHANNELS){
+      adc1_config_channel_atten(current_channel, ADC_ATTENUATION);
     }
   #endif
 
@@ -48,7 +48,7 @@ void setup_adc(){
   }
 
   //load params
-  current_params = read_regression_params();  
+  current_params = read_regression_params();
 }
 
 void clear_serial(){
@@ -57,7 +57,7 @@ void clear_serial(){
 }
 
 void calibrate_adcs(){
-  
+
 
   if (!Serial) {
     Serial.begin(115200);
@@ -69,15 +69,15 @@ void calibrate_adcs(){
 
   if(DEBUG) Serial.println("Waiting for calibration script...");
 
-  int incomingByte = -1; 
+  int incomingByte = -1;
 
   //wait for 1 sec
   for (int i = 0; i < 1000 && Serial && incomingByte == -1; i++){
       incomingByte = Serial.read();
       delay(1);
   }
-  
-  
+
+
   if(incomingByte == -1){
     if(DEBUG) Serial.println("No input. Continue loading normal routine");
     return;
@@ -88,12 +88,12 @@ void calibrate_adcs(){
 
   //set powersave mode (failsafe)
   save_operation_mode(POWER_SAVING);
-  
+
   set_blink_frequency(FAST);
-  print_big_text("CALIBRATI0N!1", &FreeMonoBold18pt7b); 
-  
-  
-  
+  print_big_text("CALIBRATI0N!1", &FreeMonoBold18pt7b);
+
+
+
   while(Serial && incomingByte != 3){ // 3 = end of text
     //wait until something arrives
     do{
@@ -103,12 +103,12 @@ void calibrate_adcs(){
 
     clear_serial();
 
-    for (adc1_channel_t current_channel : ADC_CHANNELS){      
+    for (adc1_channel_t current_channel : ADC_CHANNELS){
       Serial.print(adc1_get_raw(current_channel));
       Serial.print(" ");
     }
-    Serial.println(); 
-  }  
+    Serial.println();
+  }
 
   //ToDo: read param, and store in eeprom
 
@@ -122,7 +122,5 @@ void calibrate_adcs(){
 
   save_regression_params(tmp);
   */
-  
+
 }
-
-
