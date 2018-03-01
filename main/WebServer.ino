@@ -1,7 +1,6 @@
 /*
  * https://github.com/me-no-dev/ESPAsyncWebServer
- * 
- * https://techtutorialsx.com/2017/12/01/esp32-arduino-asynchronous-http-webserver/
+ * https://arduinojson.org/api/
  * https://www.arduino.cc/en/Reference/WiFi101BeginAP
  * https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi/src
  */
@@ -46,6 +45,8 @@ void setup_webserver() {
       JsonObject &root = jsonBuffer.createObject();
       root["read"] = true;
 
+      root["battery"] = get_battery_percente();
+      
       JsonObject& temps = root.createNestedObject("temps");
 
       for (adc1_channel_t current_channel : ADC_CHANNELS){

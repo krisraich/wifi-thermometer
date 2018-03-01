@@ -371,6 +371,9 @@ void setup() {
     case POWER_SAVING:
       start_power_saving_mode();
       return;
+    case SHUTDOWN:
+      //if wake up from shutdown, show menu
+      return;
     case WIFI_SERVER:
       start_wifi_mode();
   }
@@ -444,8 +447,9 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
   if (DEBUG) Serial.println("Touch input: " + String(pressed_button == OK_TOUCH_BUTTON ? "ok/refresh" : "mode"));
 
   if (on_boot && pressed_button == OK_TOUCH_BUTTON) {
-    //esp was woken up by user in power saving mode.,
-    //so do nothing and just refresh the temps
+    //if esp was woken up by user in power saving mode or ble mode, do nothing, just refrsh and go to sleep
+    //ToDo: if mode is SHUTDOWN show menu..
+    
   } else if (pressed_button == MODE_TOUCH_BUTTON) {
 
     last_interaction_since = millis();
@@ -557,7 +561,7 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
           break;
 
         case SHUTDOWN:
-          //save_operation_mode(POWER_SAVING);
+          save_operation_mode(SHUTDOWN);
           show_shutdown();
           prepare_to_shutdown();
           shutdown_esp();

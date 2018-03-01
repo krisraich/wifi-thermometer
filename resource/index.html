@@ -22,6 +22,7 @@
 		<div id="tempTarget">
 		</div>
 	  
+		<p>Batterie: <strong id="battery">?</strong>%</p>
 	  
 		<footer>
 			By Kris 2018 &#8226; Pitztaler Grillverein &#8226; <a href=\"https://grillverein.tirol\">grillverein.tirol</a> &#8226; <a href=\"mailto:info@grillverein.tirol\">info@grillverein.tirol</a>
@@ -46,9 +47,10 @@
 				lastResponse = response;
 				var html = "";
 				for (var channel in response.temps) {
-					html += "<p>Channel: " + channel + ": <strong>" + response.temps[channel] + "</strong></p>";
+					html += "<p>Kanal: " + channel + ": <strong>" + response.temps[channel] + "</strong></p>";
 				}
 				document.getElementById("tempTarget").innerHTML = html;
+				document.getElementById("battery").innerHTML = response.battery;
 			}
 
 		}
