@@ -98,7 +98,7 @@
 #define REGULATION_CYCLE_TIME                 mS_TO_S_FACTOR //1 sec?
 
 // Battery stuff
-#define IGNORE_BATTERY_VOLTAGE              1 //comment or delete for production
+//#define IGNORE_BATTERY_VOLTAGE              1 //comment or delete for production
 #define BATTERY_VOLTAGE_ANALOG_IN             ADC1_CHANNEL_0 //PIN VP
 #define BATTERY_VOLTAGE_DEVIDING_RESISTOR_1   100900
 #define BATTERY_VOLTAGE_DEVIDING_RESISTOR_2   100500 //verbunden mit GND und BATTERY_VOLTAGE_ANALOG_IN 

@@ -20,7 +20,6 @@ TRANSLATION TRANSLATIONS[]{
   {"bat", "Battery", "Batterie"},
   {"channel", "Channel", "Kanal"}
 
-
   
 };
 

@@ -20,6 +20,7 @@
 			}
 			.footer {
 				padding-top: 1.5rem;
+				margin-top: 2rem;
 				color: #777;
 				border-top: .05rem solid #e5e5e5;
 			}
@@ -70,13 +71,13 @@
 				</div>
 
 				<div class="col-sm-6">
-					<hr>
+					
 					<h2>{{history}}</h2>
 					<div class="jumbotron">
 						<canvas id="chart"></canvas>
 					</div>
 				</div>
-				<div class="col-12">
+				<div class="col-lg-10">
 					<hr>
 					<h3>{{bat}}</h3>
 					<div class="progress">
@@ -84,6 +85,14 @@
 					</div>
 					
 				</div>
+			   	<div class="col-lg-2">
+					<hr>
+					<div class="btn-group" role="group">
+						  <button type="button" class="btn btn-sm btn-secondary langSwitch" data-lang="de">Deutsch</button>
+						  <button type="button" class="btn btn-sm btn-secondary langSwitch" data-lang="default">English</button>
+					</div>
+					
+			   	</div>
 			</div>
 			  
 		<footer class="footer">
@@ -101,18 +110,29 @@
 		/* l10n */
 		
 		var language = false;
-		function translate(lang) {
+		var template = false;
+		function translate(langParam) {
 			$.get( "/getLanguage", function( response ) {
-				language = response[lang];
+				language = response[langParam];
 				//console.log(response[lang]);
-				var template = $('#mustache').html();
-				//Mustache.parse(template);   // optional, speeds up future uses
-				var rendered = Mustache.render(template, response[lang]);
-				$('#target').html(rendered);
+				if(template === false){
+					template = $('#mustache').html();
+				}
+				Mustache.parse(template);   // optional, speeds up future uses
+				var rendered = Mustache.render(template, response[langParam]);
+				$('#mustache').html(rendered);
+				
+				var ctx = document.getElementById("chart").getContext('2d');
+            	window.myLine = new Chart(ctx, config);
+				
+				$(".langSwitch").click(function(){
+					translate($(this).data("lang"));
+				});
+				
 				updateTemps();
 			});
 		}
-		translate("de");
+		
 			
 		
 		//for debug
@@ -126,10 +146,10 @@
 					$.each(response.channels, function (key, data) {
 						html += "<li>" + language["channel"] + " " + data.name + ": <strong>" + data.temperature + "</strong></li>";
 					});
-					updateChart(response);
 					$("#tempTarget").html(html);
 					var bat = Math.min(response.battery, 100) + "%";
 					$("#battery").width(bat).text(bat);
+					updateChart(response);
 			}).fail(function() {
 				$("#warn-no-connection").show();
 			});
@@ -203,6 +223,9 @@
 			config.data.datasets = [];
 			config.data.labels = [];
 			
+			
+			if(lastResponse.channels.length == 0) return;
+			
 			for(i = 0; i < response.channels[0].history.length; i++) {
 				  config.data.labels.push("");
 			};
@@ -228,8 +251,9 @@
 		}
 			
 		window.onload = function() {
-            var ctx = document.getElementById("chart").getContext('2d');
-            window.myLine = new Chart(ctx, config);
+			var lang = document.cookie;
+			
+			translate("de");
         };
 			
 			
