@@ -182,6 +182,7 @@
 #include "res/bin_bootstrap4.h"
 #include "res/bin_jquery3.h"
 #include "res/bin_chart.h"
+#include "res/bin_mustache.h"
 #include "res/bin_index_html.h"
 
 
@@ -208,7 +209,25 @@
 const IPAddress Ip(192, 168, 1, 1) ;
 const IPAddress NMask(255, 255, 255, 0);
 
+/*
+typedef struct {
+  String url;
+  String mime_ytpe;
+  int len;
+  uint8_t *bin[];
+} WEB_RESOURCE; 
 
+
+//define webresource
+const WEB_RESOURCE WEB_RESOURCES[] {
+  {"/favicon.png", "image/png", favicon_png_len, &favicon_png},
+  {"/bootstrap.css", "text/css", bootstrap_min_css_len, &bootstrap_min_css},
+  {"/jquery.js", "application/javascript", jquery_3_3_1_min_js_len, &jquery_3_3_1_min_js},
+  {"/chart.js", "application/javascript", chart_bundle_min_js_len, &chart_bundle_min_js},
+  {"/mustace.js", "application/javascript", mustache_min_js_len, &mustache_min_js},
+};
+ */
+ 
 struct ADC_CHANNEL {
   String name;  
   adc1_channel_t channel; 
