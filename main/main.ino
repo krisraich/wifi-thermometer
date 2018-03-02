@@ -93,7 +93,7 @@
 
 //thermal control / regulation
 #define CHANNEL_1                             GPIO_NUM_14   //Pin out for relais 1
-#define CHANNEL_2                             GPIO_NUM_27   //Pin out for relais 2
+#define CHANNEL_2                             GPIO_NUM_12   //Pin out for relais 2
 #define RELAY_PULS_WIDTH                      30 * mS_TO_S_FACTOR //10 sec?
 #define REGULATION_CYCLE_TIME                 mS_TO_S_FACTOR //1 sec?
 
@@ -237,10 +237,10 @@ struct ADC_CHANNEL {
 //Analog in for LoLin
 const ADC_CHANNEL ADC_CHANNELS[] {
   {"A", ADC1_CHANNEL_3, 0},  //PIN VN
-  {"B", ADC1_CHANNEL_4, 1},  //PIN A1.4/R9/32
-  {"C", ADC1_CHANNEL_5, 2},  //PIN A1.5/R8/33
-  {"D", ADC1_CHANNEL_6, 3},  //PIN A1.6/R4/34
-  {"E", ADC1_CHANNEL_7, 4}   //PIN A1.7/R5/35
+  {"B", ADC1_CHANNEL_6, 1},  //PIN A1.6/R4/34
+  {"C", ADC1_CHANNEL_7, 2},  //PIN A1.7/R5/35
+  {"D", ADC1_CHANNEL_4, 3},  //PIN A1.4/R9/32
+  {"E", ADC1_CHANNEL_5, 4}   //PIN A1.5/R8/33
 };
 
 

@@ -30,7 +30,7 @@ bool channel_is_active(adc1_channel_t current_channel){
 }
 
 float get_temperature_from_channel(adc1_channel_t current_channel){
-  return adc1_get_raw(current_channel) / 100; //dummy
+  return adc1_get_raw(current_channel); //dummy
 }
 
 uint8_t get_battery_percente(){
