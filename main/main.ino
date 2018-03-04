@@ -247,7 +247,12 @@ const ADC_CHANNEL ADC_CHANNELS[] {
 };
 
 
-struct REGRESSION_PARAMETER { float param_a; float param_b; float param_c; float param_d; }; 
+struct REGRESSION_PARAMETER { 
+  float param_a; 
+  float param_b; 
+  float param_c; 
+  float param_d; 
+}; 
 
 const touch_pad_t TOUCH_BUTTONS[] {
   static_cast<touch_pad_t>(OK_TOUCH_BUTTON),

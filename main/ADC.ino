@@ -123,20 +123,7 @@ void calibrate_adcs(){
   set_blink_frequency(FAST);
   print_big_text("CALIBRATI0N!1", &FreeMonoBold18pt7b);
 
-
-  REGRESSION_PARAMETER tmp = {
-    0.536924,
-    0.191396,
-    0,
-    0.000066
-  };
-
-  save_regression_params(tmp);
-
-
-
-
-  while(Serial && incomingByte != 3){ // 3 = end of text
+  while(Serial && incomingByte != 3){
     //wait until something arrives
     do{
       incomingByte = Serial.read();
@@ -145,6 +132,8 @@ void calibrate_adcs(){
 
     clear_serial();
 
+    if(incomingByte == 35) break; // ASCII "#" = go to nex step
+
     for (ADC_CHANNEL current_channel : ADC_CHANNELS){
       Serial.print(adc1_get_raw(current_channel.channel));
       Serial.print(" ");
@@ -152,17 +141,43 @@ void calibrate_adcs(){
     Serial.println();
   }
 
-  //ToDo: read param, and store in eeprom
+  //read param, and store in eeprom
+  float params[4];
+  float *ptr;
+  ptr = params;
 
-/*
+  int floats_read = 0;
+  String float_parts = "";
+
+  while(Serial){
+    //wait until something arrives
+    do{
+      incomingByte = Serial.read();
+      delay(1);
+    }while(incomingByte == -1);
+
+    if(incomingByte == 32 && floats_read < 4){ 
+      *ptr = float_parts.toFloat(); //parse string to float and write to pointer
+      ptr++; //inc array pointer
+      float_parts = ""; //empty buffer
+      floats_read++; //prevent mem leaks
+    }else if(incomingByte == 35){  //ASCII "#" = go to nex step
+        break;
+    }else{
+      float_parts += String((char)incomingByte);
+    }
+  }
+
   REGRESSION_PARAMETER tmp = {
-    1.1,
-    2.22,
-    3.333,
-    4.4444,
+    params[0],
+    params[1],
+    params[2],
+    params[3],
   };
 
+  Serial.println(print_regression_parameter(tmp));
   save_regression_params(tmp);
-  */
+
+  current_params = tmp;
 
 }

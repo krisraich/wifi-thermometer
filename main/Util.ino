@@ -29,6 +29,9 @@ static inline const char* operation_mode_to_string(OPERATION_MODE operation_mode
   }
 }
 
+static inline String print_regression_parameter(REGRESSION_PARAMETER in){
+  return "{a: " + String(in.param_a) + ", b: " + String(in.param_b) + ", c: " + String(in.param_c) + ", d: " + String(in.param_d) + " }";
+}
 
 static int count_adc_channels(){
   return (sizeof(ADC_CHANNELS)/sizeof(*ADC_CHANNELS));
