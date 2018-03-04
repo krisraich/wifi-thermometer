@@ -29,8 +29,34 @@ bool channel_is_active(adc1_channel_t current_channel){
   return !(reading < 1 || reading > 4095);
 }
 
-float get_temperature_from_channel(adc1_channel_t current_channel){
-  return adc1_get_raw(current_channel); //dummy
+
+
+/*
+ * temp is calculated with a variation of Steinhart-Hart equation
+ * 1/T = a + b(ln(R))+c(ln(R))³
+ * 
+ * For a better result the following formula is used:
+ * 
+ * 1/T = a + b(ln(Rt/Rs)) + c(ln(Rt/Rs))² + d(ln(Rt/Rs))³
+ * 
+ * Rt is the resistance of the Sensor with a given temperature
+ * Rs is the resistance of the Default value (eg 100k @ 25°C)
+ * As input the voltage of Rvd is used. (100k)
+ * 
+ * Since we do not calculate the actual resistance (only the voltage) we can replace these.
+ * At 25°C we split Vcc 50:50, assuming the ADC has a linear characteristic curve
+ * Therefore Urt and Urvd should have an theoretical ADC value of 2048 at 25°C (The ADC hast 12 bit --> max value 4096) 
+ * Since we only measure Urs we use (4096 - Urvd) to calculate Urt
+ * 
+ * We can replace now ln(Rt/Rs) with ln((4096 - Urvd) / 2048), we call this value lnr
+ * 
+ */
+double get_temperature_from_channel(adc1_channel_t current_channel){
+
+  int raw_adc = adc1_get_raw(current_channel); //Urvd
+  double lnr = log((4096 - raw_adc) / 2048);
+
+  return 1 / (current_params.param_a + current_params.param_b * lnr + current_params.param_c * pow(lnr, 2) + current_params.param_d * pow(lnr, 3));
 }
 
 uint8_t get_battery_percente(){
@@ -96,6 +122,17 @@ void calibrate_adcs(){
 
   set_blink_frequency(FAST);
   print_big_text("CALIBRATI0N!1", &FreeMonoBold18pt7b);
+
+
+  REGRESSION_PARAMETER tmp = {
+    0.536924,
+    0.191396,
+    0,
+    0.000066
+  };
+
+  save_regression_params(tmp);
+
 
 
 

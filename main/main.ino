@@ -67,6 +67,8 @@
 //#define WIFI_AP_PASSWORD                  "TestTest123"  //Hotspot Wlan Passwort, Auskommentieren für offenen Hotspot
 
 
+//ADC
+#define TEMP_SENSOR_R0                      100 //Standardwiederstand des Temperatursensors bei 25°
 
 //onboard button for Wroom Dev Board
 #define ON_BOARD_BUTTON                       0
@@ -267,7 +269,7 @@ enum OPERATION_MODE {
 enum BLINK_FREQUENCY {
   SLOW = 1000,
   NORMAL = 500,
-  FAST = 250
+  FAST = 100
 };
 
 bool menu_open = false; //menu is on display
