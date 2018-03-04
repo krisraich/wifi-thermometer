@@ -112,7 +112,7 @@
 		<script src="/jquery.js"></script>
 		<script src="/chart.js"></script>
 		<script src="/mustace.js"></script>
-		
+		<script src="/cookie.js"></script>
 		<script>
 			
 		/* l10n */
@@ -138,6 +138,8 @@
 				});
 				
 				updateTemps();
+				
+				Cookies.set('lang', langParam);
 			});
 		}
 		
@@ -162,9 +164,6 @@
 				$("#warn-no-connection").show();
 			});
 		}
-		
-		updateTemps();
-		setInterval(updateTemps, 10000);
 			
 		/* ----- CHART ------- */	
 		window.chartColors = {
@@ -259,13 +258,15 @@
 		}
 			
 		window.onload = function() {
-			var lang = document.cookie;
-			
-			translate("de");
+			var lang = Cookies.get('lang');
+			if(lang){
+				translate(lang);
+			}else{
+				translate("default");
+			}
+			setInterval(updateTemps, 10000);
         };
 			
-			
-		
 		</script>
 	</body>
 </html>

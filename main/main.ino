@@ -183,6 +183,7 @@
 #include "res/bin_jquery3.h"
 #include "res/bin_chart.h"
 #include "res/bin_mustache.h"
+#include "res/bin_jscookie.h"
 #include "res/bin_index_html.h"
 
 

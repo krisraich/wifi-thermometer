@@ -134,6 +134,13 @@ void setup_webserver() {
     request->send(response);
   });
 
+  //cookie js
+  server.on("/cookie.js", HTTP_GET, [](AsyncWebServerRequest *request){
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "application/javascript", js_cookie_js, js_cookie_js_len);
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
+  });
+
   
   server.begin();
   
