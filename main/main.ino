@@ -63,9 +63,8 @@
 #define TEMPERATUR_HISTORY_SAMPLE_RATIO     2 // SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)
 #define TEMPERATUR_HISTORY_VALUES           296 //294 Pixel per display
 
-#define WIFI_AP_SSID                        "ESP32"         //Hotspot Wlan SSID
-//#define WIFI_AP_PASSWORD                  "TestTest123"  //Hotspot Wlan Passwort, Auskommentieren für offenen Hotspot
-
+#define DEFAULT_WIFI_SSID                   "wifi thermometer"         //Hotspot Wlan SSID
+#define DEFAULT_WIFI_CHANNEL                2         //Hotspot Wlan channel
 
 //ADC
 #define TEMP_SENSOR_R0                      100 //Standardwiederstand des Temperatursensors bei 25°
@@ -370,7 +369,7 @@ void setup() {
 
   int bootups = setup_deep_sleep();
 
-  setup_data_store();
+  setup_data_store();  
 
   setup_adc();
 

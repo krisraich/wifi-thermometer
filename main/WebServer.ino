@@ -10,11 +10,12 @@
 void setup_webserver() {
   if (DEBUG) Serial.println("Setup Access point");
 
-#if defined(WIFI_AP_PASSWORD)
-  WiFi.softAP(WIFI_AP_SSID, WIFI_AP_PASSWORD);
-#else
-  WiFi.softAP(WIFI_AP_SSID);
-#endif
+  String my_ssid = has_wifi_ssid() ? get_wifi_ssid() : DEFAULT_WIFI_SSID;
+  String passphrase = has_wifi_password() ? get_wifi_password() : (String)NULL;
+
+  WiFi.softAP(my_ssid.c_str(), passphrase.c_str(), DEFAULT_WIFI_CHANNEL);
+
+
 
   IPAddress myIP;
   // local_ip,   gateway,   subnet

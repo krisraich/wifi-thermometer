@@ -141,6 +141,8 @@ void calibrate_adcs(){
     Serial.println();
   }
 
+  Serial.println("true");
+
   //read param, and store in eeprom
   float params[4];
   float *ptr;
