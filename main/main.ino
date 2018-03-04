@@ -212,22 +212,20 @@ const IPAddress Ip(192, 168, 1, 1) ;
 const IPAddress NMask(255, 255, 255, 0);
 
 /*
-typedef struct {
-  String url;
-  String mime_ytpe;
-  int len;
-  uint8_t *bin[];
-} WEB_RESOURCE; 
+
+template <int arc> class WEB_RESOURCE  {
+  public:
+    WEB_RESOURCE(String url, String mime_type, int len, const uint8_t *bin[arc]);
+  private:
+    String _url;
+    String _mime_type;
+    int _len;
+    const uint8_t *_bin[arc];
+}; 
 
 
-//define webresource
-const WEB_RESOURCE WEB_RESOURCES[] {
-  {"/favicon.png", "image/png", favicon_png_len, &favicon_png},
-  {"/bootstrap.css", "text/css", bootstrap_min_css_len, &bootstrap_min_css},
-  {"/jquery.js", "application/javascript", jquery_3_3_1_min_js_len, &jquery_3_3_1_min_js},
-  {"/chart.js", "application/javascript", chart_bundle_min_js_len, &chart_bundle_min_js},
-  {"/mustace.js", "application/javascript", mustache_min_js_len, &mustache_min_js},
-};
+
+WEB_RESOURCE<favicon_png_len>("/favicon.png", "image/png", favicon_png_len, &favicon_png) r1;
  */
  
 struct ADC_CHANNEL {
