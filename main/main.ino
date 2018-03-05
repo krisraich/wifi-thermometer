@@ -125,20 +125,6 @@
 //#define configUSE_TIME_SLICING              1
 //#define INCLUDE_vTaskDelete                 1
 
-//logs
-#define LOG_TAG_MAIN                          "Main"
-#define LOG_TAG_ADC                           "ADC"
-#define LOG_TAG_BLUETOOTH                     "Bluetooth"
-#define LOG_TAG_DATA_STORE                    "Data Store"
-#define LOG_TAG_DEEP_SLEEP                    "Deep Sleep"
-#define LOG_TAG_DISPLAY                       "Display"
-#define LOG_TAG_LED                           "Led"
-#define LOG_TAG_LOG                           "Logger"
-#define LOG_TAG_RECORDER                      "Recorder"
-#define LOG_TAG_REGULATION                    "Regulation"
-#define LOG_TAG_TOUCH                         "Touch"
-#define LOG_TAG_WEBSERVER                     "Webserver"
-
 /////////////////
 // LIBS
 /////////////////
@@ -287,10 +273,6 @@ TaskHandle_t regulation_handle = NULL;
 TaskHandle_t refresh_handle = NULL;
 TaskHandle_t menu_close_handle = NULL;
 
-//portMUX_TYPE display_mutex = portMUX_INITIALIZER_UNLOCKED;
-//portMUX_TYPE webserver_mutex = portMUX_INITIALIZER_UNLOCKED;
-//portMUX_TYPE touch_mutex = portMUX_INITIALIZER_UNLOCKED;
-
 /////////////////
 // Init Display
 /////////////////
@@ -338,7 +320,6 @@ void auto_close_menu(void *pvParameter) {
   }
 }
 
-
 /////////////////
 // Setup
 /////////////////
@@ -353,17 +334,14 @@ void setup() {
 
     //led only in debug
     setup_led();
+
+    led_start_blinking();
     
     Serial.begin(115200);
     while (!Serial) {
       delay(10); // wait for serial port to connect. Needed for native USB port only
     }
   }
-
-
-  setup_log();
-
-  led_start_blinking();
 
   int bootups = setup_deep_sleep();
 
@@ -377,9 +355,9 @@ void setup() {
 
   check_battery_life();
 
-  //enter only on reset
+  //enter only after reset
   if (bootups == 1) {
-    calibrate_adcs();
+    write_user_settings();
   }
 
   //must set befor touch
@@ -395,9 +373,7 @@ void setup() {
     return;
   }
 
-  //if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
-  ESP_LOGI(LOG_TAG_MAIN, "Starting '%s' mode", operation_mode_to_string(current_operation_mode));
-
+  if (DEBUG) Serial.println("Starting operation mode: " + String(operation_mode_to_string(current_operation_mode)));
 
   //opdate on boot
   update_display();

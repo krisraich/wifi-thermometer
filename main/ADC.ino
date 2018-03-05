@@ -82,47 +82,11 @@ void setup_adc(){
   current_params = read_regression_params();
 }
 
-void clear_serial(){
-  while(Serial.available())
-    Serial.read();
-}
+
 
 void calibrate_adcs(){
 
-
-  if (!Serial) {
-    Serial.begin(115200);
-    while (!Serial) {
-      delay(10); // wait for serial port to connect. Needed for native USB port only
-    }
-  }
-
-
-  if(DEBUG) Serial.println("Waiting for calibration script...");
-
-  int incomingByte = -1;
-
-  //wait for 1 sec
-  for (int i = 0; i < 1000 && Serial && incomingByte == -1; i++){
-      incomingByte = Serial.read();
-      delay(1);
-  }
-
-
-  if(incomingByte == -1){
-    if(DEBUG) Serial.println("No input. Continue loading normal routine");
-    return;
-  }else{
-    clear_serial();
-    Serial.println("true");
-  }
-
-  //set powersave mode (failsafe)
-  save_operation_mode(POWER_SAVING);
-
-  set_blink_frequency(FAST);
-  print_big_text("CALIBRATI0N!1", &FreeMonoBold18pt7b);
-
+  int incomingByte;
   while(Serial && incomingByte != 3){
     //wait until something arrives
     do{
