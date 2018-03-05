@@ -21,7 +21,7 @@ String read_string_from_serial(){
     while(true){
       incomingByte = Serial.read();
       if(incomingByte == SERIAL_STOP) return b;
-      b += ((char) Serial.read());
+      b += ((char) incomingByte);
     }
 }
 

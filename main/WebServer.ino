@@ -28,9 +28,10 @@ void setup_webserver() {
  
 
   if (DEBUG) {
-    Serial.print("AP IP address: ");
+    Serial.print("AP IP SSID: ");
+    Serial.println(my_ssid);
+    Serial.print("Starting Webserver with IP:");
     Serial.println(myIP);
-    Serial.println("Starting Webserver");
   }
 
 
