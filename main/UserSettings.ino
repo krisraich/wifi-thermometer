@@ -17,10 +17,10 @@
 
 String read_string_from_serial(){
   String b = "";
-  byte incomingByte = 0;
+  byte incomingByte = SERIAL_STOP;
     while(true){
       incomingByte = Serial.read();
-      if(incomingByte == -1) return b;
+      if(incomingByte == SERIAL_STOP) return b;
       b += ((char) Serial.read());
     }
 }
@@ -36,16 +36,16 @@ String read_string_from_serial(){
 
   if(DEBUG) Serial.println("Waiting for calibration script...");
 
-  int incomingByte = -1;
+  byte incomingByte = SERIAL_STOP;
 
   //wait for 1 sec
-  for (int i = 0; i < 1000 && Serial && incomingByte == -1; i++){
+  for (int i = 0; i < 1000 && Serial && incomingByte == SERIAL_STOP; i++){
       incomingByte = Serial.read();
       delay(1);
   }
 
 
-  if(incomingByte == -1){
+  if(incomingByte == SERIAL_STOP){
     if(DEBUG) Serial.println("No input. Continue loading normal routine");
     return;
   }
@@ -61,7 +61,8 @@ String read_string_from_serial(){
         calibrate_adcs();
         break;
         
-      case 50: //ASCII "2"  Set WiFi Passwd
+      case 50: //ASCII "2"  Set WiFi Passwd);
+        if(DEBUG) Serial.println("store pw");
         store_wifi_password(read_string_from_serial());
         break;
         
@@ -88,7 +89,7 @@ String read_string_from_serial(){
     do{
       incomingByte = Serial.read();
       delay(1);
-    }while(incomingByte == -1);
+    }while(incomingByte == SERIAL_STOP);
   }
 
   

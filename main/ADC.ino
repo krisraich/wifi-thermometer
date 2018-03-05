@@ -86,13 +86,13 @@ void setup_adc(){
 
 void calibrate_adcs(){
 
-  int incomingByte;
+  byte incomingByte;
   while(Serial && incomingByte != 3){
     //wait until something arrives
     do{
       incomingByte = Serial.read();
       delay(1);
-    }while(incomingByte == -1);
+    }while(incomingByte == SERIAL_STOP);
 
     clear_serial();
 
@@ -120,7 +120,7 @@ void calibrate_adcs(){
     do{
       incomingByte = Serial.read();
       delay(1);
-    }while(incomingByte == -1);
+    }while(incomingByte == SERIAL_STOP);
 
     if(incomingByte == 32 && floats_read < 4){ 
       *ptr = float_parts.toFloat(); //parse string to float and write to pointer

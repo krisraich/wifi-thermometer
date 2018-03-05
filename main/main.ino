@@ -197,6 +197,8 @@
 const IPAddress Ip(192, 168, 1, 1) ;
 const IPAddress NMask(255, 255, 255, 0);
 
+const byte SERIAL_STOP = -1;
+
 /*
 
 template <int arc> class WEB_RESOURCE  {
