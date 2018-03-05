@@ -81,7 +81,7 @@ void deep_sleep_start(){
   if(DEBUG) Serial.println("Going to sleep now");
   
   //little timeout 
-  delay(100);
+  delay(1000);
   
   esp_deep_sleep_start();
 }

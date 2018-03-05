@@ -56,18 +56,15 @@
 // Defines & Constants & PINS
 /////////////////
 
-#define DEBUG                               true
+#define DEBUG                                 true
 
 
-#define SLEEP_DURATION_SEC                  30 //Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history
-#define TEMPERATUR_HISTORY_SAMPLE_RATIO     2 // SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)
-#define TEMPERATUR_HISTORY_VALUES           296 //294 Pixel per display
+#define SLEEP_DURATION_SEC                    30 //Zeitspanne die zwischen den Temperaturen refresh liegen 30 sec = ca 5h history
+#define TEMPERATUR_HISTORY_SAMPLE_RATIO       2 // SLEEP_DURATION_SEC * TEMPERATUR_HISTORY_SAMPLE_RATIO * 296 = Time span of history (in sec)
+#define TEMPERATUR_HISTORY_VALUES             296 //294 Pixel per display
 
-#define DEFAULT_WIFI_SSID                   "wifi thermometer"         //Hotspot Wlan SSID
-#define DEFAULT_WIFI_CHANNEL                2         //Hotspot Wlan channel
-
-//ADC
-#define TEMP_SENSOR_R0                      100 //Standardwiederstand des Temperatursensors bei 25°
+#define DEFAULT_WIFI_SSID                     "wifi thermometer"         //Hotspot Wlan SSID
+#define DEFAULT_WIFI_CHANNEL                  2         //Hotspot Wlan channel
 
 //onboard button for Wroom Dev Board
 #define ON_BOARD_BUTTON                       0
@@ -81,7 +78,7 @@
 #define TOUCH_TIME                            3 //time in measuring cycles. 1 Cylce 35ms
 #define MODE_TOUCH_BUTTON                     TOUCH_PAD_NUM3 //GPIO 15 See: https://github.com/espressif/arduino-esp32/blob/master/tools/sdk/include/driver/driver/touch_pad.h
 #define OK_TOUCH_BUTTON                       TOUCH_PAD_NUM4 // GPIO 13 Button für refresh
-#define TOUTCH_THRESHOLD                      0.9 // greater value = more sensitive. Max = 0.99, Min = 0.01
+#define TOUTCH_THRESHOLD                      0.92 // greater value = more sensitive. Max = 0.99, Min = 0.01
 
 //Pin für LoLin / waveshare 2.9
 #define DISPLAY_BUSY                          GPIO_NUM_17 // Display BUSY = any GPIO
@@ -366,12 +363,12 @@ void setup() {
   current_operation_mode = get_last_operation_mode();
   selected_operation_mode = get_last_operation_mode(); //using current_operation_mode would copy the reference...
 
-  //also needed for deepsleep
+  //also needed for deepsleep, if button was pressed, it will now fire
   setup_touch();
 
   //todo: check if menu is open
   if (menu_open) {
-    //goto Loop and until it's closed
+    //goto Loop and wait until it's closed
     return;
   }
 
@@ -468,13 +465,14 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
 
   if (DEBUG) Serial.println("Touch input: " + String(pressed_button == OK_TOUCH_BUTTON ? "ok/refresh" : "mode"));
 
+  last_interaction_since = millis();
+
   if (on_boot && pressed_button == OK_TOUCH_BUTTON) {
     //if esp was woken up by user in power saving mode or ble mode, do nothing, just refrsh and go to sleep
-    //ToDo: if mode is SHUTDOWN show menu..
     
   } else if (pressed_button == MODE_TOUCH_BUTTON) {
 
-    last_interaction_since = millis();
+    
 
     //when esp was woken up by user pressing the mode button,
     //always show menu, becaus it'll never go to sleep when the menu is open
@@ -583,7 +581,7 @@ void touch_button_pressed(touch_pad_t pressed_button, bool on_boot) {
           break;
 
         case SHUTDOWN:
-          save_operation_mode(SHUTDOWN);
+          save_operation_mode(POWER_SAVING);
           show_shutdown();
           prepare_to_shutdown();
           shutdown_esp();

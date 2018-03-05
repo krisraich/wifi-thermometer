@@ -57,6 +57,10 @@ String read_string_from_serial(){
   
   while(true){
     switch(incomingByte){
+      case 48: //ASCII "0" 
+        //goto wait
+        break;
+        
       case 49: //ASCII "1"  ADC Calibration mode
         calibrate_adcs();
         break;
@@ -74,8 +78,6 @@ String read_string_from_serial(){
         store_wifi_ssid(read_string_from_serial());
         break;
       
-
-      case 48: //ASCII "0" 
       default:
         Serial.println("false");
         if(DEBUG) Serial.println("Leaving calibration");
