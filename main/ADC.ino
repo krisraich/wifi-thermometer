@@ -40,23 +40,27 @@ bool channel_is_active(adc1_channel_t current_channel){
  * 1/T = a + b(ln(Rt/Rs)) + c(ln(Rt/Rs))² + d(ln(Rt/Rs))³
  * 
  * Rt is the resistance of the Sensor with a given temperature
- * Rs is the resistance of the Default value (eg 100k @ 25°C)
+ * Rs is the resistance of the Default value (eg 1000k @ 25°C)
  * As input the voltage of Rvd is used. (100k)
  * 
  * Since we do not calculate the actual resistance (only the voltage) we can replace these.
- * At 25°C we split Vcc 50:50, assuming the ADC has a linear characteristic curve
- * Therefore Urt and Urvd should have an theoretical ADC value of 2048 at 25°C (The ADC hast 12 bit --> max value 4096) 
+ * At 25°C we split Vcc 10:1, assuming the ADC has a linear characteristic curve
+ * Therefore Urt and Urvd should have an theoretical ADC value of 410 at 25°C (The ADC hast 12 bit --> max value 4096) 
  * Since we only measure Urs we use (4096 - Urvd) to calculate Urt
  * 
- * We can replace now ln(Rt/Rs) with ln((4096 - Urvd) / 2048), we call this value lnr
+ * We can replace now ln(Rt/Rs) with ln((4096 - Urvd) / 410), we call this value lnr
+ * 
+ * Stimmt nicht.. fixen!
  * 
  */
 double get_temperature_from_channel(adc1_channel_t current_channel){
-
-  int raw_adc = adc1_get_raw(current_channel); //Urvd
-  double lnr = log((4096 - raw_adc) / 2048);
-
+  double lnr = get_log_value_from_channel(current_channel);
   return 1 / (current_params.param_a + current_params.param_b * lnr + current_params.param_c * pow(lnr, 2) + current_params.param_d * pow(lnr, 3));
+}
+
+double get_log_value_from_channel(adc1_channel_t current_channel){
+  int raw_adc = adc1_get_raw(current_channel); //Urvd
+  return log( (float)((float)(4096 - raw_adc))  / ((float)(4096.0 * VOLTAGE_DEVIDOR_RESISTANCE) / DEFAULT_RESISTANC_20 ));
 }
 
 uint8_t get_battery_percente(){
@@ -71,6 +75,10 @@ void setup_adc(){
       adc1_config_channel_atten(current_channel.channel, ADC_ATTENUATION);
     }
   #endif
+
+  analogSetCycles(MEASURE_CYCLES); //default is 8 
+  analogSetSamples(MEASURE_SAMPLES); //default is 1
+  analogSetClockDiv(MEASURE_CLOCK_DIVIDOR); //default is 1
 
   //set up battery reader
   if(DEBUG){

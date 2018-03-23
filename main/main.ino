@@ -20,7 +20,7 @@
   USED REPOSITORIES:
     E-Paper: https://github.com/ZinggJM/GxEPD
     WebServer https://github.com/me-no-dev/ESPAsyncWebServer & https://github.com/me-no-dev/AsyncTCP
-    Via Librarie manager: Adafruit GFX, AutoPID, ArduinoJson
+    Via Librarie manager: Adafruit GFX, AutoPID, ArduinoJson, CircularBuffer
 
 
   Program behaviour:
@@ -70,6 +70,13 @@
 #define ON_BOARD_BUTTON                       0
 #define ON_BOARD_BUTTON_PULLDOWN_MODE         true
 
+//ADC Conversion / Temp reading Stuff
+#define DEFAULT_RESISTANC_20                  1000 //Wiederstand des Temp fühlers bei Raumtemperatur
+#define VOLTAGE_DEVIDOR_RESISTANCE            100
+#define MEASURE_CYCLES                        8 // 8 Messzyklen
+#define MEASURE_SAMPLES                       3 // 3 Messproben
+#define MEASURE_CLOCK_DIVIDOR                 10 // Divide speed by factor 10
+
 //onboard LED for LoLin
 #define ON_BOARD_LED                          GPIO_NUM_22 //GPIO_NUM_27 for Wroom Dev Board
 #define ON_BOARD_LED_PULLDOWN_MODE            true
@@ -104,6 +111,8 @@
 #define MAX_BATTERY_VOLTAGE                   4.2   //Maximale LiIon Zellenspannung
 #define SWITCH_TO_POWERSAVE_WHEN_BAT_LOW      7   //Schalte unter X prozent Batterie in POWER_SAVE modus. Auskommentieren um zu deaktivieren 
 
+//User Settings configuration
+#define SERIAL_LOOP_CHECK_TIME                1   //task prüft alle X Sekunden ob ein Serial input ist...
 
 //times and numbers
 #define uS_TO_S_FACTOR                        1000000     // Conversion factor for micro seconds to seconds 
@@ -117,6 +126,7 @@
 #define REFRESH_TASK_PRIORITY                 10
 #define REGULATION_TASK_PRIORITY              15
 #define AUTO_CLOSE_TASK_PRIORITY              5
+#define USER_SETTINGS_TASK_PRIORITY           7
 
 #define FREE_RTOS_STACK_SIZE                  4096
 //#define configUSE_TIME_SLICING              1
@@ -271,6 +281,7 @@ TaskHandle_t touch_handle = NULL;
 TaskHandle_t regulation_handle = NULL;
 TaskHandle_t refresh_handle = NULL;
 TaskHandle_t menu_close_handle = NULL;
+TaskHandle_t user_settings_handle = NULL;
 
 /////////////////
 // Init Display
@@ -342,7 +353,7 @@ void setup() {
     }
   }
 
-  int bootups = setup_deep_sleep();
+  setup_deep_sleep();
 
   setup_data_store();  
 
@@ -353,11 +364,6 @@ void setup() {
   setup_display();
 
   check_battery_life();
-
-  //enter only after reset
-  if (bootups == 1) {
-    write_user_settings();
-  }
 
   //must set befor touch
   current_operation_mode = get_last_operation_mode();
@@ -430,6 +436,7 @@ void start_wifi_mode() {
   setup_regulation();
   xTaskCreate(&refresh_display, "refresh_display", FREE_RTOS_STACK_SIZE, NULL, REFRESH_TASK_PRIORITY, &refresh_handle);
   setup_webserver();
+  setup_user_settings();
 }
 
 void start_power_saving_mode() {

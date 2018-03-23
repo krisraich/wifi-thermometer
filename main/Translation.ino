@@ -6,7 +6,7 @@ struct TRANSLATION{
   String identifier;
   String default_lang;
   String de;
-  //add here more languages
+  //add more languages here
 }; 
 
 TRANSLATION TRANSLATIONS[]{
