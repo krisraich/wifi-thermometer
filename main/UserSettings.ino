@@ -1,6 +1,10 @@
 /*
  * Used for communication over serial in WiFi Mode
  * 
+ * Connect with putty:
+ *  Win: putty -serial COM6 -sercfg 115200
+ *  Linux: putty -serial /dev/ttyUSB0 -sercfg 115200
+ * 
  * to start calibration send string: frist char = mode, other chars = data. Example: 2testpasswd
  *  '1' Calibrate ADC
  *  '2' Set Wifi password
@@ -68,6 +72,11 @@ void user_settings_task(void *pvParameter) {
           if(DEBUG) Serial.println(wifissid);
           store_wifi_ssid(wifissid);
           break;
+        }
+        case 57: //ASCII "9" reboot
+        {
+          prepare_to_shutdown();
+          ESP.restart();
         }
 
         

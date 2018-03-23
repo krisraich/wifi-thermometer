@@ -11,11 +11,17 @@ void setup_webserver() {
   if (DEBUG) Serial.println("Setup Access point");
 
   String my_ssid = has_wifi_ssid() ? get_wifi_ssid() : DEFAULT_WIFI_SSID;
-  String passphrase = has_wifi_password() ? get_wifi_password() : (String)NULL;
-
-  WiFi.softAP(my_ssid.c_str(), passphrase.c_str(), DEFAULT_WIFI_CHANNEL);
-
-
+  if(has_wifi_password()){
+    String ap_pwd = get_wifi_password();
+    if(DEBUG){
+      Serial.print("Accesspoint Password: ");
+      Serial.println(ap_pwd);
+    }
+    WiFi.softAP(my_ssid.c_str(), ap_pwd.c_str(), DEFAULT_WIFI_CHANNEL);
+  }else{
+    WiFi.softAP(my_ssid.c_str(), NULL, DEFAULT_WIFI_CHANNEL);
+  }
+  
 
   IPAddress myIP;
   // local_ip,   gateway,   subnet
@@ -28,10 +34,8 @@ void setup_webserver() {
  
 
   if (DEBUG) {
-    Serial.print("AP IP SSID: ");
+    Serial.print("Accesspoint SSID: ");
     Serial.println(my_ssid);
-    Serial.print("Starting Webserver with IP:");
-    Serial.println(myIP);
   }
 
 
@@ -62,6 +66,7 @@ void setup_webserver() {
         JsonObject& current_channel = channels.createNestedObject();
         current_channel["name"] = channel.name;
         current_channel["temperature"] = get_temperature_from_channel(channel.channel);
+        current_channel["adc_raw"] = adc1_get_raw(channel.channel);
 
         //create channel history array in current channel
         JsonArray& channel_history = current_channel.createNestedArray("history");
@@ -143,7 +148,10 @@ void setup_webserver() {
     request->send(response);
   });
 
-  
+  if (DEBUG) {
+    Serial.print("Starting Webserver with IP:");
+    Serial.println(myIP);
+  }
   server.begin();
   
 }
