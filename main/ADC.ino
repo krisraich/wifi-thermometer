@@ -10,7 +10,8 @@
 //#define ADC_ATTENUATION ADC_ATTEN_11db
 
 
-REGRESSION_PARAMETER current_params;
+REGRESSION_PARAMETER temp_regression_params, bat_regression_params;
+
 
 float get_battery_voltage(){
   return get_adc_raw_voltage() * (BATTERY_VOLTAGE_DEVIDING_RESISTOR_1 + BATTERY_VOLTAGE_DEVIDING_RESISTOR_2) / BATTERY_VOLTAGE_DEVIDING_RESISTOR_2;
@@ -20,7 +21,7 @@ float get_adc_raw_voltage(){
   int reading = adc1_get_raw(BATTERY_VOLTAGE_ANALOG_IN);
 
   if(reading < 1 || reading >= 4095) return -1;
-  //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
+  //return bat_regression_params.param_a * pow(reading,3) + bat_regression_params.param_b * pow(reading,2) + bat_regression_params.param_c * reading + bat_regression_params.param_d;
   return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
 }
 
@@ -54,8 +55,11 @@ bool channel_is_active(adc1_channel_t current_channel){
  * 
  */
 double get_temperature_from_channel(adc1_channel_t current_channel){
-  double lnr = get_log_value_from_channel(current_channel);
-  return 1 / (current_params.param_a + current_params.param_b * lnr + current_params.param_c * pow(lnr, 2) + current_params.param_d * pow(lnr, 3));
+  int raw_adc = adc1_get_raw(current_channel);
+  
+  return adc1_get_raw(current_channel) / 10; //Urvd
+  //double lnr = get_log_value_from_channel(current_channel);
+  //return 1 / (temp_regression_params.param_a + temp_regression_params.param_b * lnr + temp_regression_params.param_c * pow(lnr, 2) + temp_regression_params.param_d * pow(lnr, 3));
 }
 
 double get_log_value_from_channel(adc1_channel_t current_channel){
@@ -87,7 +91,13 @@ void setup_adc(){
   }
 
   //load params
-  current_params = read_regression_params();
+   for (ADC_CHANNEL current_channel : ADC_CHANNELS){
+      temp_regression_params = read_regression_params(current_channel.index); //read only from entry 0. Future use is params for each channel
+      break;
+   }
+   
+   bat_regression_params = read_regression_params_for_battery();
+  
 }
 
 
@@ -150,8 +160,8 @@ void calibrate_adcs(){
   };
 
   Serial.println(print_regression_parameter(tmp));
-  save_regression_params(tmp);
+  save_regression_params(tmp, 0);
 
-  current_params = tmp;
+  temp_regression_params = tmp;
 
 }

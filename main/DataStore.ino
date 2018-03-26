@@ -3,22 +3,21 @@
  * https://github.com/espressif/arduino-esp32/blob/master/libraries/EEPROM/EEPROM.h
  */ 
 
-#define EEPROM_SIZE 256
+#define EEPROM_SIZE 512
 
 #define LAST_OPERATION_MODE_ADDRESS 0
 
-//store float
-#define CAL_A_ADDRESS 10
-#define CAL_B_ADDRESS 14
-#define CAL_C_ADDRESS 18
-#define CAL_D_ADDRESS 24
+
+#define WIFI_SSID_ADDRESS 9 //WiFi SSID Max len = 32 chars
+//wifi SSID name Address 10 to 42
+
+#define WIFI_PWD_ADDRESS 43  //WiFi pwd max len = 62 A pass-phrase is a sequence of between 8 and 63 ASCII-encoded characters
+//wifi Passwd Address from 44 to 107
+
+//16 Bytes per param set * 6 = 104 Bytes -> EEPROM_SIZE mind. 304
+#define REGRESSION_PARAMS_START 200 
 
 
-#define WIFI_SSID_ADDRESS 29 //WiFi SSID Max len = 32 chars
-//wifi SSID name Address 30 to 62
-
-#define WIFI_PWD_ADDRESS 63  //WiFi pwd max len = 62 A pass-phrase is a sequence of between 8 and 63 ASCII-encoded characters
-//wifi Passwd Address from 64 to 127
 
 
 void setup_data_store(){
@@ -50,25 +49,32 @@ void save_operation_mode(OPERATION_MODE operation_mode){
   }
 }
 
-REGRESSION_PARAMETER read_regression_params(){
-  REGRESSION_PARAMETER temp = {};
+REGRESSION_PARAMETER read_regression_params(int index){
+  //read param, and store in eeprom
+  REGRESSION_PARAMETER tmp = {
+    get_float_from_address(REGRESSION_PARAMS_START + (index * 16)),
+    get_float_from_address(REGRESSION_PARAMS_START + (index * 16) + 4),
+    get_float_from_address(REGRESSION_PARAMS_START + (index * 16) + 8),
+    get_float_from_address(REGRESSION_PARAMS_START + (index * 16) + 12),
+  };
 
-  temp.param_a = get_float_from_address(CAL_A_ADDRESS);
-  temp.param_b = get_float_from_address(CAL_B_ADDRESS);
-  temp.param_c = get_float_from_address(CAL_C_ADDRESS);
-  temp.param_d = get_float_from_address(CAL_D_ADDRESS);
-
-  return temp;
+  return tmp;
+}
+REGRESSION_PARAMETER read_regression_params_for_battery(){
+  return read_regression_params(count_adc_channels()); //append after temp regression
 }
 
 
-void save_regression_params(REGRESSION_PARAMETER params){
-  store_float_at_address(CAL_A_ADDRESS, params.param_a);
-  store_float_at_address(CAL_B_ADDRESS, params.param_b);
-  store_float_at_address(CAL_C_ADDRESS, params.param_c);
-  store_float_at_address(CAL_D_ADDRESS, params.param_d);
+void save_regression_params(REGRESSION_PARAMETER params, int index){
+  store_float_at_address(REGRESSION_PARAMS_START + (index * 16), params.param_a);
+  store_float_at_address(REGRESSION_PARAMS_START + (index * 16) + 4, params.param_b);
+  store_float_at_address(REGRESSION_PARAMS_START + (index * 16) + 8, params.param_c);
+  store_float_at_address(REGRESSION_PARAMS_START + (index * 16) + 12, params.param_d);
   if (DEBUG) Serial.println("Regression values saved"); 
   EEPROM.commit();
+}
+void save_regression_params_for_battery(REGRESSION_PARAMETER params){
+  save_regression_params(params, count_adc_channels());
 }
 
 float get_float_from_address(int address){

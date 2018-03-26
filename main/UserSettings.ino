@@ -5,12 +5,7 @@
  *  Win: putty -serial COM6 -sercfg 115200
  *  Linux: putty -serial /dev/ttyUSB0 -sercfg 115200
  * 
- * to start calibration send string: frist char = mode, other chars = data. Example: 2testpasswd
- *  '1' Calibrate ADC
- *  '2' Set Wifi password
- *  '3' Remove WiFi pwd
- *  '4' Set Wifi SSID
- *  Every thing else will exit calibration
+ * to save custom settings simply send string to serial: frist char = mode, other chars = data. Example: 2testpasswd
  */
 
 void user_settings_task(void *pvParameter) {
@@ -73,12 +68,22 @@ void user_settings_task(void *pvParameter) {
           store_wifi_ssid(wifissid);
           break;
         }
+
+        
+        case 114: //ASCII "r" to reset EEPROM
+        {
+          prepare_to_shutdown();
+          if(read_string_from_serial() == "eset"){
+            clear_eeprom();
+          }
+        }
+        
+        //fall through and reboot
         case 57: //ASCII "9" reboot
         {
           prepare_to_shutdown();
           ESP.restart();
         }
-
         
         default:
         {
@@ -93,15 +98,13 @@ void user_settings_task(void *pvParameter) {
       clear_serial();
     }
    
-    vTaskDelay(SERIAL_LOOP_CHECK_TIME * mS_TO_S_FACTOR / portTICK_PERIOD_MS);
+    vTaskDelay(SERIAL_LOOP_CHECK_TIME / portTICK_PERIOD_MS);
   }
 }
 
 void setup_user_settings() {
   xTaskCreate(&user_settings_task, "user_settings_task", FREE_RTOS_STACK_SIZE, NULL, USER_SETTINGS_TASK_PRIORITY, &user_settings_handle);
 }
-
-
 
 
 void clear_serial(){

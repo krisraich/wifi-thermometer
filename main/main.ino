@@ -112,7 +112,7 @@
 #define SWITCH_TO_POWERSAVE_WHEN_BAT_LOW      7   //Schalte unter X prozent Batterie in POWER_SAVE modus. Auskommentieren um zu deaktivieren 
 
 //User Settings configuration
-#define SERIAL_LOOP_CHECK_TIME                1   //task prüft alle X Sekunden ob ein Serial input ist...
+#define SERIAL_LOOP_CHECK_TIME                100   //task prüft alle X ms ob ein Serial input ist...
 
 //times and numbers
 #define uS_TO_S_FACTOR                        1000000     // Conversion factor for micro seconds to seconds 

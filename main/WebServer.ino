@@ -54,6 +54,7 @@ void setup_webserver() {
       //root element
       JsonObject &root = jsonBuffer.createObject();
       root["battery"] = get_battery_percente();
+      root["battery_raw"] = adc1_get_raw(BATTERY_VOLTAGE_ANALOG_IN);
 
       //create channels array in root element
       JsonArray& channels = root.createNestedArray("channels");
