@@ -74,21 +74,18 @@ uint8_t get_battery_percente(){
 void setup_adc(){
   adc1_config_width(ADC_WIDTH_12Bit);
 
-  #if defined(ADC_ATTENUATION) && ADC_ATTENUATION !=  ADC_ATTEN_11db //only set when different from default
-    for (ADC_CHANNEL current_channel : ADC_CHANNELS){
-      adc1_config_channel_atten(current_channel.channel, ADC_ATTENUATION);
-    }
-  #endif
+  //set temp channel to 0db
+  for (ADC_CHANNEL current_channel : ADC_CHANNELS){
+    adc1_config_channel_atten(current_channel.channel, ADC_ATTEN_0db);
+  }
+  
+  //set bat channel to 11db
+  adc1_config_channel_atten(BATTERY_VOLTAGE_ANALOG_IN, ADC_ATTEN_DB_11);
 
   analogSetCycles(MEASURE_CYCLES); //default is 8 
   analogSetSamples(MEASURE_SAMPLES); //default is 1
   analogSetClockDiv(MEASURE_CLOCK_DIVIDOR); //default is 1
 
-  //set up battery reader
-  if(DEBUG){
-    Serial.print("Setup ADC, Battery voltage: ");
-    Serial.println(get_battery_voltage());
-  }
 
   //load params
    for (ADC_CHANNEL current_channel : ADC_CHANNELS){
@@ -97,6 +94,12 @@ void setup_adc(){
    }
    
    bat_regression_params = read_regression_params_for_battery();
+
+  //set up battery reader
+  if(DEBUG){
+    Serial.print("Setup ADC, Battery voltage: ");
+    Serial.println(get_battery_voltage());
+  }
   
 }
 

@@ -72,7 +72,7 @@ void update_display(){
   display.drawLine(0,boxHeight,display.width(),boxHeight,GxEPD_BLACK);
   
   display.setTextColor(GxEPD_BLACK);
-  display.setFont(&FreeMonoBold9pt7b);
+  display.setFont(&FreeSans9pt7b);
   
   int lineheight = 13;
   int x;
@@ -116,18 +116,49 @@ void show_menu(OPERATION_MODE operation_mode){
   //taskENTER_CRITICAL(&display_mutex);
   if(DEBUG) Serial.println("---- Showing Mode: " + String(operation_mode_to_string(operation_mode))+ " -----");
 
-  print_big_text(operation_mode_to_string(operation_mode), &FreeMonoBold18pt7b);
-  //simulate time...
-  //display.drawBitmap(gImage_logo_floyd, sizeof(gImage_logo_floyd), GxEPD::bm_invert /* | GxEPD::bm_flip_y */);
-  
+  display.fillScreen(GxEPD_WHITE);
+  display.setTextColor(GxEPD_BLACK);
+  display.setFont(&FreeSans12pt7b);
+
+  const unsigned char (*icon_to_draw)[420]; // = pointer to an array of length 420..
+
+   switch (operation_mode){
+    case POWER_SAVING: 
+      display.setCursor(10, 20); // <-- x --> , y^
+      display.print("Power saving mode");
+      icon_to_draw = &menu_battery_save_mode;
+      break;
+    case WIFI_SERVER:  
+      display.setCursor(20, 20); 
+      display.print("WiFi mode");
+      icon_to_draw = &menu_wifi_mode;
+      break;
+    case BT_LE_SLAVE:  
+      display.setCursor(10, 20);
+      display.print("Bluetooth slave mode");
+      icon_to_draw = &menu_ble_mode;
+      break;
+    case SHUTDOWN:      
+      display.print("Shutdown Thermometer");
+      display.setCursor(10, 20);
+      break;
+    default: 
+      display.print("Unknowen mode?");
+      display.setCursor(10, 5);
+      break;;
+  }
+  display.drawBitmap(119, 38, *icon_to_draw, 58, 58, GxEPD_BLACK);
+  //display.drawBitmap(&icon_to_draw, 58, 58, 119, 38, GxEPD_BLACK); //x , y 58px icons, 296 px width = 296 / 2 - 58 / 2 = 119; 96 - 58 = 38
+  display.update();
+
   last_refresh = millis();
-  //taskEXIT_CRITICAL(&display_mutex);
+ 
 }
 
 void show_shutdown(){
   //taskENTER_CRITICAL(&display_mutex);
   if(DEBUG) Serial.println("----- Shut down ------");
-  //print_big_text("Shut down empty", &FreeMonoBold18pt7b);
+  //print_big_text("Shut down empty", &FreeSans18pt7b);
   //simulate time...
   display.drawBitmap(img_logo, sizeof(img_logo));
   //taskEXIT_CRITICAL(&display_mutex);
@@ -143,13 +174,13 @@ void show_empty_battery(){
 
 
 /*
- * f: FreeMonoBold9pt7b FreeMonoBold12pt7b FreeMonoBold18pt7b FreeMonoBold24pt7b
+ * f: FreeSans9pt7b FreeSans12pt7b FreeSans18pt7b FreeSans24pt7b
  */
 void print_big_text(const char text[], const GFXfont* f){
   display.fillScreen(GxEPD_WHITE);
   display.setTextColor(GxEPD_BLACK);
   display.setFont(f);
-  display.setCursor(10, display.height() / 2 + 12); // <-- x --> , y^
+  display.setCursor(10, 5); // <-- x --> , y^
   display.print(text);
   display.update();
 }
